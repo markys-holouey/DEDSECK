@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DEDSECK</title>
+<title>Мой сайт</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #0d1020; color: #e8eaf6; min-height: 100vh; }
@@ -34,6 +34,8 @@
   button.gray:hover { box-shadow: 0 4px 14px rgba(42,48,80,.6); }
   button.danger { background: #c0392b; }
   button.danger:hover { box-shadow: 0 4px 14px rgba(192,57,43,.45); }
+  button.warn { background: #b9770e; }
+  button.warn:hover { box-shadow: 0 4px 14px rgba(185,119,14,.45); }
   button:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .err { color: #ff6b6b; margin-top: 10px; font-size: 14px; }
@@ -62,6 +64,7 @@
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
   .dot.on { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
   .dot.off { background: #555f80; }
+  .banned { color: #ff6b6b; }
 
   #toast { position: fixed; left: 50%; bottom: 24px; background: #5b5bd6; padding: 12px 20px; border-radius: 10px; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 99; max-width: 90vw; animation: pop .35s ease both; }
   .hidden { display: none !important; }
@@ -71,7 +74,7 @@
 
 <div id="authScreen" class="center">
   <div>
-    <h1>DEDSECK</h1>
+    <h1>Мой сайт</h1>
     <div class="sub">Вход по нику и паролю</div>
     <div class="card">
       <label>Ник</label>
@@ -85,9 +88,21 @@
   </div>
 </div>
 
+<!-- Экран выключенного сервера: ввод кода разблокировки -->
+<div id="serverOffScreen" class="center hidden">
+  <div class="card" style="text-align:center">
+    <h1 style="font-size:52px">⏻</h1>
+    <div class="sub" style="margin-bottom:12px">Сервер отключён владельцем</div>
+    <label>Код разблокировки</label>
+    <input id="unlockCode" inputmode="numeric" placeholder="••••••••">
+    <button id="btnUnlock" style="width:100%">Разблокировать</button>
+    <div id="unlockMsg" class="err"></div>
+  </div>
+</div>
+
 <div id="app" class="hidden">
   <div class="topbar">
-    <b>DEDSECK</b>
+    <b>Мой сайт</b>
     <span id="whoami" class="small"></span>
     <button id="btnNotif" class="gray">🔔 Вкл. уведомления</button>
     <button id="btnLogout" class="gray">Выйти</button>
@@ -116,12 +131,10 @@
 
     <div id="adminSection" class="hidden">
 
-      <!-- Кнопка, открывающая блок участников -->
       <div class="panel anim-in">
         <button id="btnMembers" style="width:100%;font-size:16px;padding:14px">👥 Участники</button>
       </div>
 
-      <!-- Отдельный блок участников: открывается и закрывается кнопкой -->
       <div id="membersBlock" class="panel hidden">
         <h3>👥 Участники</h3>
 
@@ -135,8 +148,24 @@
 
         <hr class="divider">
         <button id="btnReload" class="gray" style="margin-top:0">🔄 Обновить список</button>
-        <div class="small" style="margin-top:8px">Нажми на участника, чтобы начислить/списать баллы или удалить его</div>
+        <div class="small" style="margin-top:8px">Нажми на участника: баллы, кик, бан, удаление</div>
         <div id="accList"></div>
+
+        <hr class="divider">
+        <div class="small" style="margin-bottom:6px"><b>Массово — у всех участников сразу:</b></div>
+        <div class="row">
+          <input id="massAmount" type="number" min="1" value="10" style="max-width:110px">
+          <button id="btnMassAdd">＋ Начислить всем</button>
+          <button id="btnMassSub" class="danger">－ Списать у всех</button>
+        </div>
+        <div id="massMsg" class="ok"></div>
+      </div>
+
+      <div class="panel anim-in">
+        <h3>⏻ Сервер</h3>
+        <div class="small" style="margin-bottom:4px">Пин-код выключает сайт для всех: все выкидываются на экран с полем кода разблокировки. Введут код — смогут войти снова.</div>
+        <button id="btnServer">⏻ Выключить сервер</button>
+        <div id="serverMsg" class="ok"></div>
       </div>
 
       <div class="panel anim-in">
@@ -167,8 +196,12 @@
 const SUPABASE_URL = "https://hpcjtximqeuqtlidkacv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A";
 
+/* Пин-код выключения сервера и код разблокировки — СМЕНИ ИХ */
+const ADMIN_PIN = '1975';
+const UNLOCK_CODE = '20091975';
+
 const ADMIN_EMAIL = 'polostyanoy@mysait.local';
-const ONLINE_MS = 35000; /* в сети, если активен последние 35 секунд */
+const ONLINE_MS = 35000;
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let me = null, myNick = '', isAdmin = false, savedCreds = null;
@@ -177,12 +210,60 @@ let notifCache = [], seen = new Set(), accounts = [];
 let unreadCount = 0;
 let selectedId = null;
 let membersOpen = false;
+let stopped = false; /* мы на ширме/выброшены — опрос остановлен */
+let serverOff = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 $('btnLogin').onclick = login;
 $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+$('btnUnlock').onclick = tryUnlock;
+$('unlockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+/* ── Флаг «сервер выключен» ── */
+async function isServerOff() {
+  try {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'site_off').maybeSingle();
+    return !!(data && data.value === 'true');
+  } catch (e) { return false; }
+}
+async function setServerOff(v) {
+  const { error } = await supabase.from('settings').upsert({ key: 'site_off', value: v ? 'true' : 'false' });
+  if (error) { toast('Не получилось переключить: ' + error.message); return false; }
+  serverOff = v;
+  return true;
+}
+function updateServerButton() {
+  $('btnServer').textContent = serverOff ? '✅ Включить сервер (пин-код)' : '⏻ Выключить сервер (пин-код)';
+}
+
+/* Экран выключенного сервера */
+function showServerScreen() {
+  stopped = true;
+  clearInterval(pollTimer);
+  $('app').classList.add('hidden');
+  $('authScreen').classList.add('hidden');
+  $('serverOffScreen').classList.remove('hidden');
+  $('unlockCode').value = '';
+  $('unlockMsg').textContent = '';
+}
+
+async function tryUnlock() {
+  const c = $('unlockCode').value.trim();
+  const m = $('unlockMsg');
+  m.textContent = ''; m.classList.remove('shake');
+  if (c !== UNLOCK_CODE) {
+    m.textContent = 'Неверный код';
+    void m.offsetWidth; m.classList.add('shake');
+    return;
+  }
+  const ok = await setServerOff(false);
+  if (!ok) return;
+  $('serverOffScreen').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');
+  toast('Сервер включён — можно входить');
+}
 
 async function login() {
   const nick = $('nick').value.trim().toLowerCase();
@@ -191,9 +272,34 @@ async function login() {
   m.textContent = ''; m.classList.remove('shake');
   if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
   const email = nick + '@mysait.local';
+
+  /* Если сервер выключен — вход закрыт для всех, только код разблокировки */
+  if (await isServerOff()) {
+    m.textContent = 'Сервер отключён — введи код разблокировки на экране';
+    void m.offsetWidth; m.classList.add('shake');
+    showServerScreen();
+    return;
+  }
+
   const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if (error) {
     m.textContent = /invalid/i.test(error.message) ? 'Неверный ник или пароль' : (error.message || 'Не удалось войти');
+    void m.offsetWidth; m.classList.add('shake');
+    return;
+  }
+  /* Проверки: не удалён ли и не забанен ли аккаунт */
+  const { data: u } = await supabase.auth.getUser();
+  const { data: rows } = await supabase.from('accounts').select('*').eq('user_id', u.user.id);
+  const row = rows && rows[0];
+  if (row && row.deleted) {
+    await supabase.auth.signOut();
+    m.textContent = 'Этот аккаунт удалён владельцем сайта';
+    void m.offsetWidth; m.classList.add('shake');
+    return;
+  }
+  if (row && row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
+    await supabase.auth.signOut();
+    m.textContent = 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now());
     void m.offsetWidth; m.classList.add('shake');
     return;
   }
@@ -214,15 +320,26 @@ async function enterApp(nick) {
     const { error: insErr } = await supabase.from('accounts')
       .insert({ user_id: me.id, nick, points: 0, last_seen: new Date().toISOString() });
     if (insErr) toast('Не удалось создать строку в accounts: ' + insErr.message);
+  } else if (rows[0].deleted) {
+    await kickSelf(true, 'Этот аккаунт удалён владельцем сайта');
+    return;
+  } else if (rows[0].banned_until && new Date(rows[0].banned_until).getTime() > Date.now()) {
+    await kickSelf(true, 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(rows[0].banned_until).getTime() - Date.now()));
+    return;
   }
+  await clearMyKickFlag();
   updateLastSeen();
+
+  serverOff = await isServerOff();
+  if (serverOff) { showServerScreen(); return; }
 
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : '');
   if (isAdmin) {
     $('adminSection').classList.remove('hidden');
-    loadAccounts(); /* грузим заранее, чтобы список был готов к открытию */
+    loadAccounts();
+    updateServerButton();
   }
 
   await initNotifications();
@@ -233,7 +350,48 @@ async function enterApp(nick) {
   window.scrollTo(0, 0);
 }
 
-/* Кнопка открытия/закрытия блока участников */
+/* Сброс кика у себя (после прошлой сессии) */
+async function clearMyKickFlag() {
+  if (!me) return;
+  await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
+}
+
+/* Выброс: удаление, бан или кик */
+async function kickSelf(atLogin, message) {
+  stopped = true;
+  clearInterval(pollTimer);
+  if (me) await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
+  await supabase.auth.signOut();
+  sessionStorage.removeItem('admin_creds');
+  if (atLogin) {
+    const m = $('authMsg');
+    m.textContent = message || 'Сессия завершена владельцем';
+    void m.offsetWidth; m.classList.add('shake');
+  } else {
+    toast(message || '👋 Владелец завершил вашу сессию');
+    setTimeout(() => location.reload(), 2200);
+  }
+}
+
+/* Кнопка сервера: пин-код 1975 */
+$('btnServer').onclick = async () => {
+  const pin = prompt(serverOff ? 'Введите пин-код, чтобы ВКЛЮЧИТЬ сервер:' : 'Введите пин-код, чтобы ВЫКЛЮЧИТЬ сервер:');
+  if (pin === null) return;
+  if (pin !== ADMIN_PIN) { $('serverMsg').className = 'err'; $('serverMsg').textContent = 'Неверный пин-код'; return; }
+  const ok = await setServerOff(!serverOff);
+  if (!ok) return;
+  $('serverMsg').className = 'ok';
+  $('serverMsg').textContent = serverOff ? 'Сервер выключен — все выкинуты на экран кода' : 'Сервер включён';
+  updateServerButton();
+  if (serverOff) {
+    /* Все на сайте (включая меня) — на экран разблокировки */
+    setTimeout(showServerScreen, 600);
+  } else {
+    $('serverOffScreen').classList.add('hidden');
+    $('authScreen').classList.remove('hidden');
+  }
+};
+
 $('btnMembers').onclick = () => {
   membersOpen = !membersOpen;
   $('membersBlock').classList.toggle('hidden', !membersOpen);
@@ -280,6 +438,16 @@ function isOnline(a) {
   return (Date.now() - new Date(a.last_seen).getTime()) < ONLINE_MS;
 }
 
+function fmtLeft(ms) {
+  const totalMin = Math.max(1, Math.round(ms / 60000));
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  if (h > 0) return h + ' ч ' + (m ? m + ' мин' : '');
+  return m + ' мин';
+}
+function isBanned(a) {
+  return a.banned_until && new Date(a.banned_until).getTime() > Date.now();
+}
+
 async function loadAccounts() {
   if (!isAdmin) return;
   const { data, error } = await supabase.from('accounts').select('*').order('nick');
@@ -291,12 +459,12 @@ async function loadAccounts() {
         ? '<br><br>Нужно выполнить SQL-скрипт (отключение защиты строк).'
         : '') +
       (error.message.toLowerCase().includes('does not exist')
-        ? '<br><br>Таблица accounts не создана — выполни SQL-скрипт.'
+        ? '<br><br>Таблица не создана — выполни SQL-скрипт.'
         : '') +
       '</div>';
     return;
   }
-  accounts = data || [];
+  accounts = (data || []).filter(a => !a.deleted);
   if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
   renderAccountList();
   fillSendSelect();
@@ -310,6 +478,7 @@ function renderAccountList() {
   for (const a of accounts) {
     const isMe = a.user_id === me.id;
     const online = isOnline(a);
+    const banned = isBanned(a);
 
     const d = document.createElement('div');
     d.className = 'item clickable' + (a.id === selectedId ? ' selected' : '');
@@ -317,7 +486,9 @@ function renderAccountList() {
       <span>
         <span class="dot ${online ? 'on' : 'off'}"></span><b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
         &nbsp;<span class="small">⭐ ${a.points || 0}</span>
-        <br><span class="small" style="margin-left:15px">${online ? 'в сети' : 'не в сети'}</span>
+        <br><span class="small" style="margin-left:15px">
+          ${banned ? '<span class="banned">🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) + '</span>' : (online ? 'в сети' : 'не в сети')}
+        </span>
       </span>
       <span class="small">${a.id === selectedId ? '▲ свернуть' : '▼ открыть'}</span>`;
 
@@ -333,11 +504,10 @@ function renderAccountList() {
       det.className = 'detail';
       det.innerHTML = `
         <div class="row" style="margin-bottom:4px"><span><b>Ник:</b> ${esc(a.nick)}</span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b> <span class="dot ${online ? 'on' : 'off'}" style="margin:0 4px 0 0"></span>${online ? 'в сети' : 'не в сети'}</span></div>
+        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b> <span class="dot ${online ? 'on' : 'off'}" style="margin:0 4px 0 0"></span>${banned ? '<span class="banned">бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) + '</span>' : (online ? 'в сети' : 'не в сети')}</span></div>
         <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
-        <div class="small" style="margin:6px 0 2px">Пароль скрыт — Supabase хранит его зашифрованным.
-        Ты сам придумывал его при создании. Сменить можно в Supabase: Authentication → Users → пользователь → Reset password.</div>
-        <div class="small" style="margin:10px 0 2px"><b>Изменить баллы:</b></div>
+        <div class="small" style="margin:6px 0 2px">Пароль скрыт — Supabase хранит его зашифрованным. Ты сам придумывал его при создании.</div>
+        <div class="small" style="margin:10px 0 2px"><b>Баллы:</b></div>
         <div class="row">
           <input type="number" min="0" value="10" id="detAmount" style="max-width:110px">
         </div>
@@ -345,6 +515,21 @@ function renderAccountList() {
           <button id="detAdd">＋ Начислить</button>
           <button id="detSub" class="danger">－ Списать</button>
           <button id="detSet" class="gray">＝ Установить</button>
+        </div>
+        <div class="small" style="margin:10px 0 2px"><b>Кик и бан:</b></div>
+        <div class="row">
+          <button id="detKick" class="warn" ${isMe ? 'disabled title="Себя кикнуть нельзя"' : ''}>👋 Кикнуть</button>
+        </div>
+        <div class="row">
+          <input type="number" min="1" value="10" id="banAmount" style="max-width:90px">
+          <select id="banUnit" style="max-width:120px">
+            <option value="min">минут</option>
+            <option value="hours">часов</option>
+          </select>
+          <button id="detBan" class="danger" ${isMe ? 'disabled' : ''}>🚫 Запретить вход</button>
+          <button id="detUnban" class="gray">Снять бан</button>
+        </div>
+        <div class="row">
           <button id="detDel" class="danger" ${isMe ? 'disabled title="Нельзя удалить себя"' : ''}>🗑 Удалить участника</button>
         </div>
         <div id="detMsg" class="ok"></div>`;
@@ -353,6 +538,11 @@ function renderAccountList() {
       det.querySelector('#detAdd').onclick = () => changePointsDet(a, 'add');
       det.querySelector('#detSub').onclick = () => changePointsDet(a, 'sub');
       det.querySelector('#detSet').onclick = () => changePointsDet(a, 'set');
+      if (!isMe) {
+        det.querySelector('#detKick').onclick = () => kickMember(a);
+        det.querySelector('#detBan').onclick = () => banMember(a);
+      }
+      det.querySelector('#detUnban').onclick = () => unbanMember(a);
       if (!isMe) det.querySelector('#detDel').onclick = () => deleteMember(a);
     }
   }
@@ -383,12 +573,75 @@ async function changePointsDet(a, mode) {
   await refreshPoints();
 }
 
+/* Кик: выбросить с сайта сейчас (без запрета входа) */
+async function kickMember(a) {
+  if (!confirm('Кикнуть «' + a.nick + '» с сайта? Он сможет сразу войти снова.')) return;
+  const { error } = await supabase.from('accounts').update({ kick_flag: true }).eq('id', a.id);
+  if (error) { toast('Не получилось кикнуть: ' + error.message); return; }
+  toast('👋 ' + a.nick + ' будет кикнут в течение 10 секунд');
+}
+
+/* Временный бан */
+async function banMember(a) {
+  const det = $('accList').querySelector('.detail');
+  if (!det) return;
+  const amt = parseInt(det.querySelector('#banAmount').value, 10);
+  const unit = det.querySelector('#banUnit').value;
+  const msg = det.querySelector('#detMsg');
+  msg.className = 'ok'; msg.textContent = '';
+  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
+  const ms = unit === 'hours' ? amt * 3600000 : amt * 60000;
+  const until = new Date(Date.now() + ms).toISOString();
+  const { error } = await supabase.from('accounts')
+    .update({ banned_until: until, kick_flag: true }).eq('id', a.id);
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '. Он сейчас будет кикнут.';
+  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
+  a.banned_until = until;
+  renderAccountList();
+}
+
+async function unbanMember(a) {
+  const { error } = await supabase.from('accounts').update({ banned_until: null }).eq('id', a.id);
+  if (error) { toast('Не получилось снять бан: ' + error.message); return; }
+  a.banned_until = null;
+  toast('Бан с ' + a.nick + ' снят — он может входить');
+  renderAccountList();
+}
+
+/* Массовое изменение баллов */
+$('btnMassAdd').onclick = () => changePointsAll('add');
+$('btnMassSub').onclick = () => changePointsAll('sub');
+
+async function changePointsAll(mode) {
+  const amt = parseInt($('massAmount').value, 10);
+  const msg = $('massMsg'); msg.className = 'ok'; msg.textContent = '';
+  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
+  const targets = accounts.filter(a => a.user_id && a.user_id !== me.id);
+  if (!targets.length) { msg.className = 'err'; msg.textContent = 'Нет участников кроме тебя'; return; }
+  let done = 0;
+  for (const a of targets) {
+    const newVal = mode === 'add' ? (a.points || 0) + amt : Math.max(0, (a.points || 0) - amt);
+    const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', a.id);
+    if (!error) {
+      done++;
+      await supabase.from('notifications').insert({
+        recipient_id: a.user_id,
+        text: (mode === 'add' ? `Всем начислено ${amt} балл(ов).` : `У всех списано ${amt} балл(ов).`) + ` Теперь у вас ${newVal}.`
+      });
+      a.points = newVal;
+    }
+  }
+  msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
+  renderAccountList();
+}
+
 async function deleteMember(a) {
-  if (!confirm('Удалить участника «' + a.nick + '»? Его баллы и запись о нём исчезнут.')) return;
-  const { error } = await supabase.from('accounts').delete().eq('id', a.id);
+  if (!confirm('Удалить участника «' + a.nick + '»? Если он сейчас на сайте — его выбросит в течение 10 секунд, и он больше не сможет войти.')) return;
+  const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не удалось удалить: ' + error.message); return; }
   if (selectedId === a.id) selectedId = null;
-  toast('Участник ' + a.nick + ' удалён');
+  toast('Участник ' + a.nick + ' удалён — вход ему закрыт');
   await loadAccounts();
 }
 
@@ -453,17 +706,38 @@ async function initNotifications() {
 }
 
 async function poll() {
-  if (!me) return;
+  if (!me || stopped) return;
+
+  /* 1. Не выключен ли сервер */
+  const offNow = await isServerOff();
+  if (offNow !== serverOff) {
+    serverOff = offNow;
+    if (isAdmin) updateServerButton();
+  }
+  if (serverOff) { showServerScreen(); return; }
+
+  /* 2. Моё состояние: кик, бан, удаление */
+  const { data: myRows } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
+  if (!myRows || myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
+  if (myRows.banned_until && new Date(myRows.banned_until).getTime() > Date.now()) {
+    kickSelf(false, '🚫 Владелец запретил вам вход. Осталось: ' + fmtLeft(new Date(myRows.banned_until).getTime() - Date.now()));
+    return;
+  }
+  if (myRows.kick_flag) { kickSelf(false, '👋 Владелец кикнул вас с сайта'); return; }
   updateLastSeen();
+
+  /* 3. Список участников (для владельца) */
   if (isAdmin && membersOpen) {
     const { data: freshAccounts } = await supabase.from('accounts').select('*');
     if (freshAccounts) {
-      accounts = freshAccounts;
+      accounts = freshAccounts.filter(a => !a.deleted);
       if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
       renderAccountList();
       fillSendSelect();
     }
   }
+
+  /* 4. Новые уведомления */
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
   pollLast = new Date().toISOString();
   const fresh = (data || []).filter(n => (!n.recipient_id || n.recipient_id === me.id) && !notifCache.some(x => x.id === n.id));
