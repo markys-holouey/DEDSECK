@@ -8,35 +8,32 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #0d1020; color: #e8eaf6; min-height: 100vh; }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  @keyframes pop { 0% { opacity: 0; transform: translateX(-50%) scale(.8) translateY(20px); } 60% { transform: translateX(-50%) scale(1.05); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,.5); } 50% { box-shadow: 0 0 0 6px rgba(231,76,60,0); } }
   @keyframes expand { from { opacity: 0; transform: translateY(-8px); max-height: 0; } to { opacity: 1; transform: none; max-height: 2000px; } }
-  .anim-in { animation: fadeUp .45s ease both; }
-  .anim-in:nth-child(2) { animation-delay: .07s; }
-  .anim-in:nth-child(3) { animation-delay: .14s; }
-  .anim-in:nth-child(4) { animation-delay: .21s; }
-  .anim-in:nth-child(5) { animation-delay: .28s; }
+  .anim-in { animation: fadeUp .25s ease both; }
+  .anim-in:nth-child(2) { animation-delay: .05s; }
+  .anim-in:nth-child(3) { animation-delay: .1s; }
+  .anim-in:nth-child(4) { animation-delay: .15s; }
+  .anim-in:nth-child(5) { animation-delay: .2s; }
 
   .center { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
   h1 { text-align: center; margin-bottom: 4px; }
   .sub { text-align: center; color: #8a93b2; margin-bottom: 24px; }
-  .card { background: #171b2e; border-radius: 14px; padding: 24px; width: 340px; box-shadow: 0 8px 30px rgba(0,0,0,.4); animation: fadeUp .5s ease both; }
+  .card { background: #171b2e; border-radius: 14px; padding: 24px; width: 340px; box-shadow: 0 8px 30px rgba(0,0,0,.4); animation: fadeUp .25s ease both; }
   label { display: block; margin: 10px 0 4px; color: #8a93b2; font-size: 14px; }
   input, textarea, select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2a3050; background: #0d1020; color: #e8eaf6; font-size: 15px; transition: border-color .2s, box-shadow .2s; }
   input:focus, textarea:focus, select:focus { outline: none; border-color: #5b5bd6; box-shadow: 0 0 0 3px rgba(91,91,214,.25); }
 
-  button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 14px; font-size: 15px; background: #5b5bd6; color: #fff; margin-top: 10px; transition: transform .12s ease, box-shadow .2s, filter .2s; }
-  button:hover { filter: brightness(1.15); box-shadow: 0 4px 14px rgba(91,91,214,.35); }
-  button:active { transform: scale(.95); }
+  button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 14px; font-size: 15px; background: #5b5bd6; color: #fff; margin-top: 10px; transition: filter .2s, box-shadow .2s; }
+  button:hover { filter: brightness(1.15); }
   button.gray { background: #2a3050; }
-  button.gray:hover { box-shadow: 0 4px 14px rgba(42,48,80,.6); }
+  button.gray:hover { filter: brightness(1.25); }
   button.danger { background: #c0392b; }
-  button.danger:hover { box-shadow: 0 4px 14px rgba(192,57,43,.45); }
+  button.danger:hover { filter: brightness(1.15); }
   button.warn { background: #b9770e; }
-  button.warn:hover { box-shadow: 0 4px 14px rgba(185,119,14,.45); }
-  button:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+  button.warn:hover { filter: brightness(1.15); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
 
   .err { color: #ff6b6b; margin-top: 10px; font-size: 14px; }
   .err.shake { animation: shake .3s ease; }
@@ -46,28 +43,27 @@
   .topbar b { margin-right: auto; }
 
   .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
-  .panel { background: #171b2e; border-radius: 12px; padding: 18px; margin-bottom: 16px; transition: transform .2s, box-shadow .2s; }
-  .panel:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .panel { background: #171b2e; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
   .panel h3 { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .row > input, .row > select { flex: 1; min-width: 120px; }
-  .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; background: #0d1020; border-radius: 8px; margin-top: 8px; transition: background .2s, transform .15s; animation: fadeUp .3s ease both; }
-  .item:hover { background: #141830; transform: translateX(2px); }
+  .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; background: #0d1020; border-radius: 8px; margin-top: 8px; transition: background .2s; }
+  .item:hover { background: #141830; }
   .item.clickable { cursor: pointer; user-select: none; }
-  .item.clickable:hover { border-left: 3px solid #5b5bd6; padding-left: 9px; }
   .item.selected { border-left: 3px solid #7c7cf0; padding-left: 9px; }
-  .detail { background: #10142a; border-radius: 10px; padding: 14px; margin-top: 6px; margin-bottom: 4px; animation: expand .3s ease both; }
+  .item-anim { animation: fadeUp .25s ease both; }
+  .detail { background: #10142a; border-radius: 10px; padding: 14px; margin-top: 6px; margin-bottom: 4px; animation: expand .25s ease both; }
   .small { color: #8a93b2; font-size: 13px; }
   .points { font-size: 22px; font-weight: bold; color: #ffd166; }
   .divider { border: none; border-top: 1px dashed #2a3050; margin: 18px 0; }
-  .badge { background: #e74c3c; border-radius: 10px; padding: 1px 7px; font-size: 12px; animation: pulse 2s infinite; }
+  .badge { background: #e74c3c; border-radius: 10px; padding: 1px 7px; font-size: 12px; }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
   .dot.on { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
   .dot.off { background: #555f80; }
   .banned { color: #ff6b6b; }
   .locktext { text-align: center; color: #ffd166; font-size: 15px; margin: 8px 0 4px; }
 
-  #toast { position: fixed; left: 50%; bottom: 24px; background: #5b5bd6; padding: 12px 20px; border-radius: 10px; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 99; max-width: 90vw; animation: pop .35s ease both; }
+  #toast { position: fixed; left: 50%; bottom: 24px; background: #5b5bd6; padding: 12px 20px; border-radius: 10px; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 99; max-width: 90vw; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -154,10 +150,15 @@
         <div id="accList"></div>
 
         <hr class="divider">
-        <div class="small" style="margin-bottom:6px"><b>Массово — у всех участников сразу:</b></div>
+        <div class="small" style="margin-bottom:4px"><b>Массово — сразу всем участникам:</b></div>
+        <div class="small" style="margin-bottom:2px">Начислить всем по:</div>
         <div class="row">
-          <input id="massAmount" type="number" min="1" value="10" style="max-width:110px">
+          <input id="massAddAmount" type="number" min="1" value="10" style="max-width:110px">
           <button id="btnMassAdd">＋ Начислить всем</button>
+        </div>
+        <div class="small" style="margin-top:6px;margin-bottom:2px">Списать у всех по:</div>
+        <div class="row">
+          <input id="massSubAmount" type="number" min="1" value="10" style="max-width:110px">
           <button id="btnMassSub" class="danger">－ Списать у всех</button>
         </div>
         <div id="massMsg" class="ok"></div>
@@ -280,7 +281,7 @@ async function login() {
   if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
   const email = nick + '@mysait.local';
 
-  /* Двойная проверка прямо перед входом: блокировка в базе — значит, никак не зайти */
+  /* Проверка перед входом: блокировка в базе — значит, никак не зайти */
   if (await isServerOff()) {
     serverOff = true;
     renderAuthScreen();
@@ -479,12 +480,13 @@ async function loadAccounts() {
   }
   accounts = (data || []).filter(a => !a.deleted);
   if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
-  renderAccountList();
+  renderAccountList(true);
   fillSendSelect();
 }
 $('btnReload').onclick = loadAccounts;
 
-function renderAccountList() {
+/* animate=true — только при ручной загрузке списка; автообновление идёт без анимации */
+function renderAccountList(animate) {
   const list = $('accList');
   if (!list) return;
   list.innerHTML = '';
@@ -494,7 +496,7 @@ function renderAccountList() {
     const banned = isBanned(a);
 
     const d = document.createElement('div');
-    d.className = 'item clickable' + (a.id === selectedId ? ' selected' : '');
+    d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedId ? ' selected' : '');
     d.innerHTML = `
       <span>
         <span class="dot ${online ? 'on' : 'off'}"></span><b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
@@ -507,7 +509,7 @@ function renderAccountList() {
 
     d.onclick = () => {
       selectedId = (selectedId === a.id) ? null : a.id;
-      renderAccountList();
+      renderAccountList(false);
     };
 
     list.appendChild(d);
@@ -520,7 +522,7 @@ function renderAccountList() {
         <div class="row" style="margin-bottom:4px"><span><b>Статус:</b> <span class="dot ${online ? 'on' : 'off'}" style="margin:0 4px 0 0"></span>${banned ? '<span class="banned">бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) + '</span>' : (online ? 'в сети' : 'не в сети')}</span></div>
         <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
         <div class="small" style="margin:6px 0 2px">Пароль скрыт — Supabase хранит его зашифрованным. Ты сам придумывал его при создании.</div>
-        <div class="small" style="margin:10px 0 2px"><b>Баллы:</b></div>
+        <div class="small" style="margin:10px 0 2px"><b>Баллы (индивидуально):</b></div>
         <div class="row">
           <input type="number" min="0" value="10" id="detAmount" style="max-width:110px">
         </div>
@@ -562,6 +564,7 @@ function renderAccountList() {
   if (!accounts.length) list.innerHTML = '<div class="small">Пока никого</div>';
 }
 
+/* Индивидуальное изменение баллов */
 async function changePointsDet(a, mode) {
   const det = $('accList').querySelector('.detail');
   if (!det) return;
@@ -582,7 +585,7 @@ async function changePointsDet(a, mode) {
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: word });
   toast('Готово: у ' + a.nick + ' теперь ' + newVal + ' баллов');
   a.points = newVal;
-  renderAccountList();
+  renderAccountList(false);
   await refreshPoints();
 }
 
@@ -609,7 +612,7 @@ async function banMember(a) {
   msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '. Он сейчас будет кикнут.';
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
   a.banned_until = until;
-  renderAccountList();
+  renderAccountList(false);
 }
 
 async function unbanMember(a) {
@@ -617,14 +620,16 @@ async function unbanMember(a) {
   if (error) { toast('Не получилось снять бан: ' + error.message); return; }
   a.banned_until = null;
   toast('Бан с ' + a.nick + ' снят — он может входить');
-  renderAccountList();
+  renderAccountList(false);
 }
 
+/* Массовое изменение баллов: у добавления и списания свои поля */
 $('btnMassAdd').onclick = () => changePointsAll('add');
 $('btnMassSub').onclick = () => changePointsAll('sub');
 
 async function changePointsAll(mode) {
-  const amt = parseInt($('massAmount').value, 10);
+  const input = mode === 'add' ? $('massAddAmount') : $('massSubAmount');
+  const amt = parseInt(input.value, 10);
   const msg = $('massMsg'); msg.className = 'ok'; msg.textContent = '';
   if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
   const targets = accounts.filter(a => a.user_id && a.user_id !== me.id);
@@ -643,7 +648,7 @@ async function changePointsAll(mode) {
     }
   }
   msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
-  renderAccountList();
+  renderAccountList(false);
 }
 
 async function deleteMember(a) {
@@ -744,13 +749,13 @@ async function poll() {
   if (myRows.kick_flag) { kickSelf(false, '👋 Владелец кикнул вас с сайта'); return; }
   updateLastSeen();
 
-  /* 3. Список участников (для владельца) */
+  /* 3. Список участников (для владельца) — без анимации, чтобы не дёргалось */
   if (isAdmin && membersOpen) {
     const { data: freshAccounts } = await supabase.from('accounts').select('*');
     if (freshAccounts) {
       accounts = freshAccounts.filter(a => !a.deleted);
       if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
-      renderAccountList();
+      renderAccountList(false);
       fillSendSelect();
     }
   }
@@ -797,7 +802,6 @@ function toast(text) {
   const t = $('toast');
   t.textContent = text;
   t.style.display = 'block';
-  t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.style.display = 'none', 5000);
 }
