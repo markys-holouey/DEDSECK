@@ -192,8 +192,8 @@
 (function () {
 
 /* ═══════════════════════════════════════════════════════
-   ⚠️ Адрес ниже должен быть скопирован кнопкой Copy
-   из панели Supabase (страница проекта, рядом с адресом).
+   Адрес проекта Supabase — сверь его по буквам с панелью
+   (страница проекта, рядом с кнопкой Copy).
    ═══════════════════════════════════════════════════════ */
 const SUPABASE_URL = "https://hpcjtximqeuqtlidkacv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A";
@@ -223,7 +223,7 @@ $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 $('btnUnlock').onclick = tryUnlock;
 $('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 
-/* ── Флаг «сервер выключен» ── */
+/* ── Флаг «сервер выключен» живёт в базе, обновлению страницы не подчиняется ── */
 async function isServerOff() {
   try {
     const { data } = await supabase.from('settings').select('value').eq('key', 'site_off').maybeSingle();
@@ -280,7 +280,12 @@ async function login() {
   if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
   const email = nick + '@mysait.local';
 
-  if (await isServerOff()) { renderAuthScreen(); return; }
+  /* Двойная проверка прямо перед входом: блокировка в базе — значит, никак не зайти */
+  if (await isServerOff()) {
+    serverOff = true;
+    renderAuthScreen();
+    return;
+  }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if (error) {
@@ -331,8 +336,13 @@ async function enterApp(nick) {
   await clearMyKickFlag();
   updateLastSeen();
 
+  /* Последний рубеж: прямо перед показом сайта проверяем блокировку ещё раз */
   serverOff = await isServerOff();
-  if (serverOff) { renderAuthScreen(); return; }
+  if (serverOff) {
+    await supabase.auth.signOut();
+    renderAuthScreen();
+    return;
+  }
 
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
@@ -717,6 +727,7 @@ async function poll() {
   if (serverOff) {
     stopped = true;
     clearInterval(pollTimer);
+    await supabase.auth.signOut();
     $('app').classList.add('hidden');
     $('authScreen').classList.remove('hidden');
     renderAuthScreen();
@@ -815,10 +826,11 @@ $('btnLogout').onclick = async () => {
   location.reload();
 };
 
-/* Без автовхода: при каждом открытии страницы выходим из аккаунта */
+/* При каждом открытии страницы: выходим из аккаунта и сразу проверяем блокировку */
 (async () => {
   await supabase.auth.signOut();
   sessionStorage.removeItem('admin_creds');
+  serverOff = await isServerOff();
   renderAuthScreen();
 })();
 
