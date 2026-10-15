@@ -65,6 +65,7 @@
   .dot.on { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
   .dot.off { background: #555f80; }
   .banned { color: #ff6b6b; }
+  .locktext { text-align: center; color: #ffd166; font-size: 15px; margin: 8px 0 4px; }
 
   #toast { position: fixed; left: 50%; bottom: 24px; background: #5b5bd6; padding: 12px 20px; border-radius: 10px; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 99; max-width: 90vw; animation: pop .35s ease both; }
   .hidden { display: none !important; }
@@ -75,28 +76,29 @@
 <div id="authScreen" class="center">
   <div>
     <h1>Мой сайт</h1>
-    <div class="sub">Вход по нику и паролю</div>
+    <div class="sub" id="authSub">Вход по нику и паролю</div>
     <div class="card">
-      <label>Ник</label>
-      <input id="nick" placeholder="polostyanoy">
-      <label>Пароль</label>
-      <input id="pass" type="password">
-      <button id="btnLogin" style="width:100%">Войти</button>
-      <div id="authMsg" class="err"></div>
-      <div class="small" style="text-align:center;margin-top:12px">Аккаунты выдаёт владелец сайта</div>
-    </div>
-  </div>
-</div>
 
-<!-- Экран выключенного сервера: ввод кода разблокировки -->
-<div id="serverOffScreen" class="center hidden">
-  <div class="card" style="text-align:center">
-    <h1 style="font-size:52px">⏻</h1>
-    <div class="sub" style="margin-bottom:12px">Сервер отключён владельцем</div>
-    <label>Код разблокировки</label>
-    <input id="unlockCode" inputmode="numeric" placeholder="••••••••">
-    <button id="btnUnlock" style="width:100%">Разблокировать</button>
-    <div id="unlockMsg" class="err"></div>
+      <!-- Обычный вход: показывается, когда сервер включён -->
+      <div id="loginBlock">
+        <label>Ник</label>
+        <input id="nick" placeholder="polostyanoy">
+        <label>Пароль</label>
+        <input id="pass" type="password">
+        <button id="btnLogin" style="width:100%">Войти</button>
+        <div id="authMsg" class="err"></div>
+        <div class="small" style="text-align:center;margin-top:12px">Аккаунты выдаёт владелец сайта</div>
+      </div>
+
+      <!-- Экран блокировки: показывается, когда сервер выключен -->
+      <div id="lockBlock" class="hidden">
+        <div class="locktext">🔒 Сайт заблокирован владельцем.<br>Для активации введите код:</div>
+        <input id="lockCode" inputmode="numeric" placeholder="Введите код активации">
+        <button id="btnUnlock" style="width:100%">Активировать</button>
+        <div id="lockMsg" class="err"></div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -163,8 +165,8 @@
 
       <div class="panel anim-in">
         <h3>⏻ Сервер</h3>
-        <div class="small" style="margin-bottom:4px">Пин-код выключает сайт для всех: все выкидываются на экран с полем кода разблокировки. Введут код — смогут войти снова.</div>
-        <button id="btnServer">⏻ Выключить сервер</button>
+        <div class="small" style="margin-bottom:4px">Пин-код выключает сайт: у всех на главном экране появится «Сайт заблокирован» со строкой кода активации.</div>
+        <button id="btnServer">⏻ Выключить сервер (пин-код)</button>
         <div id="serverMsg" class="ok"></div>
       </div>
 
@@ -196,7 +198,7 @@
 const SUPABASE_URL = "https://hpcjtximqeuqtlidkacv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A";
 
-/* Пин-код выключения сервера и код разблокировки — СМЕНИ ИХ */
+/* Пин-код выключения и код активации — СМЕНИ ИХ */
 const ADMIN_PIN = '1975';
 const UNLOCK_CODE = '20091975';
 
@@ -210,7 +212,7 @@ let notifCache = [], seen = new Set(), accounts = [];
 let unreadCount = 0;
 let selectedId = null;
 let membersOpen = false;
-let stopped = false; /* мы на ширме/выброшены — опрос остановлен */
+let stopped = false;
 let serverOff = false;
 
 const $ = id => document.getElementById(id);
@@ -219,7 +221,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 $('btnLogin').onclick = login;
 $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 $('btnUnlock').onclick = tryUnlock;
-$('unlockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+$('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 
 /* ── Флаг «сервер выключен» ── */
 async function isServerOff() {
@@ -238,31 +240,36 @@ function updateServerButton() {
   $('btnServer').textContent = serverOff ? '✅ Включить сервер (пин-код)' : '⏻ Выключить сервер (пин-код)';
 }
 
-/* Экран выключенного сервера */
-function showServerScreen() {
-  stopped = true;
-  clearInterval(pollTimer);
-  $('app').classList.add('hidden');
-  $('authScreen').classList.add('hidden');
-  $('serverOffScreen').classList.remove('hidden');
-  $('unlockCode').value = '';
-  $('unlockMsg').textContent = '';
+/* Главный экран: показать либо блокировку, либо форму входа */
+function renderAuthScreen() {
+  if (serverOff) {
+    $('loginBlock').classList.add('hidden');
+    $('lockBlock').classList.remove('hidden');
+    $('authSub').textContent = 'Сайт заблокирован';
+    $('lockCode').value = '';
+    $('lockMsg').textContent = '';
+  } else {
+    $('lockBlock').classList.add('hidden');
+    $('loginBlock').classList.remove('hidden');
+    $('authSub').textContent = 'Вход по нику и паролю';
+  }
 }
 
 async function tryUnlock() {
-  const c = $('unlockCode').value.trim();
-  const m = $('unlockMsg');
+  const c = $('lockCode').value.trim();
+  const m = $('lockMsg');
   m.textContent = ''; m.classList.remove('shake');
   if (c !== UNLOCK_CODE) {
     m.textContent = 'Неверный код';
     void m.offsetWidth; m.classList.add('shake');
     return;
   }
+  const offNow = await isServerOff();
+  if (!offNow) { toast('Сайт уже разблокирован'); renderAuthScreen(); return; }
   const ok = await setServerOff(false);
   if (!ok) return;
-  $('serverOffScreen').classList.add('hidden');
-  $('authScreen').classList.remove('hidden');
-  toast('Сервер включён — можно входить');
+  toast('Сайт разблокирован — входите');
+  renderAuthScreen();
 }
 
 async function login() {
@@ -273,13 +280,7 @@ async function login() {
   if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
   const email = nick + '@mysait.local';
 
-  /* Если сервер выключен — вход закрыт для всех, только код разблокировки */
-  if (await isServerOff()) {
-    m.textContent = 'Сервер отключён — введи код разблокировки на экране';
-    void m.offsetWidth; m.classList.add('shake');
-    showServerScreen();
-    return;
-  }
+  if (await isServerOff()) { renderAuthScreen(); return; }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if (error) {
@@ -331,7 +332,7 @@ async function enterApp(nick) {
   updateLastSeen();
 
   serverOff = await isServerOff();
-  if (serverOff) { showServerScreen(); return; }
+  if (serverOff) { renderAuthScreen(); return; }
 
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
@@ -350,13 +351,11 @@ async function enterApp(nick) {
   window.scrollTo(0, 0);
 }
 
-/* Сброс кика у себя (после прошлой сессии) */
 async function clearMyKickFlag() {
   if (!me) return;
   await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
 }
 
-/* Выброс: удаление, бан или кик */
 async function kickSelf(atLogin, message) {
   stopped = true;
   clearInterval(pollTimer);
@@ -364,6 +363,7 @@ async function kickSelf(atLogin, message) {
   await supabase.auth.signOut();
   sessionStorage.removeItem('admin_creds');
   if (atLogin) {
+    renderAuthScreen();
     const m = $('authMsg');
     m.textContent = message || 'Сессия завершена владельцем';
     void m.offsetWidth; m.classList.add('shake');
@@ -381,14 +381,17 @@ $('btnServer').onclick = async () => {
   const ok = await setServerOff(!serverOff);
   if (!ok) return;
   $('serverMsg').className = 'ok';
-  $('serverMsg').textContent = serverOff ? 'Сервер выключен — все выкинуты на экран кода' : 'Сервер включён';
+  $('serverMsg').textContent = serverOff ? 'Сервер выключен — у всех экран блокировки' : 'Сервер включён';
   updateServerButton();
   if (serverOff) {
-    /* Все на сайте (включая меня) — на экран разблокировки */
-    setTimeout(showServerScreen, 600);
-  } else {
-    $('serverOffScreen').classList.add('hidden');
-    $('authScreen').classList.remove('hidden');
+    /* Все на сайте (включая меня) — на главный экран блокировки */
+    setTimeout(() => {
+      stopped = true;
+      clearInterval(pollTimer);
+      $('app').classList.add('hidden');
+      $('authScreen').classList.remove('hidden');
+      renderAuthScreen();
+    }, 600);
   }
 };
 
@@ -573,7 +576,6 @@ async function changePointsDet(a, mode) {
   await refreshPoints();
 }
 
-/* Кик: выбросить с сайта сейчас (без запрета входа) */
 async function kickMember(a) {
   if (!confirm('Кикнуть «' + a.nick + '» с сайта? Он сможет сразу войти снова.')) return;
   const { error } = await supabase.from('accounts').update({ kick_flag: true }).eq('id', a.id);
@@ -581,7 +583,6 @@ async function kickMember(a) {
   toast('👋 ' + a.nick + ' будет кикнут в течение 10 секунд');
 }
 
-/* Временный бан */
 async function banMember(a) {
   const det = $('accList').querySelector('.detail');
   if (!det) return;
@@ -609,7 +610,6 @@ async function unbanMember(a) {
   renderAccountList();
 }
 
-/* Массовое изменение баллов */
 $('btnMassAdd').onclick = () => changePointsAll('add');
 $('btnMassSub').onclick = () => changePointsAll('sub');
 
@@ -714,7 +714,14 @@ async function poll() {
     serverOff = offNow;
     if (isAdmin) updateServerButton();
   }
-  if (serverOff) { showServerScreen(); return; }
+  if (serverOff) {
+    stopped = true;
+    clearInterval(pollTimer);
+    $('app').classList.add('hidden');
+    $('authScreen').classList.remove('hidden');
+    renderAuthScreen();
+    return;
+  }
 
   /* 2. Моё состояние: кик, бан, удаление */
   const { data: myRows } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
@@ -812,6 +819,7 @@ $('btnLogout').onclick = async () => {
 (async () => {
   await supabase.auth.signOut();
   sessionStorage.removeItem('admin_creds');
+  renderAuthScreen();
 })();
 
 })();
