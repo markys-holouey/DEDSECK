@@ -30,7 +30,6 @@
 
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-  @keyframes expand { from { opacity: 0; transform: translateY(-8px); max-height: 0; } to { opacity: 1; transform: none; max-height: 2000px; } }
   .anim-in { animation: fadeUp .3s ease both; }
   .anim-in:nth-child(2) { animation-delay: .05s; }
   .anim-in:nth-child(3) { animation-delay: .1s; }
@@ -118,7 +117,6 @@
   .detail {
     background: rgba(11,14,26,.8); border: 1px solid var(--line);
     border-radius: 12px; padding: 16px; margin-top: 6px; margin-bottom: 4px;
-    animation: expand .25s ease both;
   }
   .small { color: var(--muted); font-size: 13px; }
   .points { font-size: 24px; font-weight: 700; color: var(--warn); }
@@ -189,7 +187,7 @@
   <div class="topbar">
     <span class="brand">DEDSECK</span>
     <span id="whoami" class="small"></span>
-    <button id="btnNotif" class="gray">🔔 Вкл. уведомления</button>
+    <button id="btnNotifView" class="gray">🔔 Уведомления</button>
     <button id="btnLogout" class="gray">Выйти</button>
   </div>
 
@@ -206,12 +204,6 @@
         <button id="btnAddRec">Добавить</button>
       </div>
       <div id="recList"></div>
-    </div>
-
-    <div class="panel anim-in">
-      <h3>🔔 Уведомления <span id="notifBadge"></span></h3>
-      <div id="notifList"></div>
-      <button id="btnReadMark" class="gray" style="font-size:13px;margin-top:8px">Отметить прочитанным</button>
     </div>
 
     <div id="adminSection" class="hidden">
@@ -294,6 +286,21 @@
   </div>
 </div>
 
+<!-- Окно уведомлений -->
+<div id="notifModal" class="overlay hidden">
+  <div class="card" style="width:420px">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px">
+      <h3 style="margin:0">🔔 Уведомления <span id="notifBadge"></span></h3>
+      <button id="btnNotifClose" class="gray" style="padding:6px 12px">✕</button>
+    </div>
+    <div id="notifList" style="max-height:55vh;overflow:auto;padding-right:4px"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="btnReadMark" class="gray" style="font-size:13px">Отметить прочитанным</button>
+      <button id="btnNotifOn" class="gray" style="font-size:13px">🔊 Вкл. браузерные уведомления</button>
+    </div>
+  </div>
+</div>
+
 <!-- Оверлей доп-проверки с таймером -->
 <div id="pinOverlay" class="overlay hidden">
   <div class="card" style="width:320px">
@@ -343,6 +350,10 @@ $('btnUnlock').onclick = tryUnlock;
 $('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 $('btnAlarmOff').onclick = alarmOff;
 $('alarmCode').addEventListener('keydown', e => { if (e.key === 'Enter') alarmOff(); });
+
+$('btnNotifView').onclick = () => { $('notifModal').classList.remove('hidden'); renderNotifs(); };
+$('btnNotifClose').onclick = () => { $('notifModal').classList.add('hidden'); };
+$('notifModal').addEventListener('click', e => { if (e.target === $('notifModal')) $('notifModal').classList.add('hidden'); });
 
 async function getSetting(key) {
   try {
@@ -1168,6 +1179,9 @@ function renderNotifs() {
 
 function updateBadge() {
   $('notifBadge').innerHTML = unreadCount ? ` <span class="badge">${unreadCount}</span>` : '';
+  $('btnNotifView').textContent = unreadCount
+    ? '🔔 Уведомления (' + unreadCount + ')'
+    : '🔔 Уведомления';
 }
 
 $('btnReadMark').onclick = () => {
@@ -1196,11 +1210,11 @@ function beep() {
     setTimeout(() => ctx.close(), 500);
   } catch (e) {}
 }
-$('btnNotif').onclick = async () => {
+$('btnNotifOn').onclick = async () => {
   if (!('Notification' in window)) { toast('Браузер не поддерживает уведомления'); return; }
   const p = await Notification.requestPermission();
   if (p === 'granted') {
-    $('btnNotif').textContent = '🔔 Уведомления вкл.';
+    $('btnNotifOn').textContent = '🔊 Уведомления вкл.';
     new Notification('DEDSECK', { body: 'Уведомления включены!' });
   }
 };
