@@ -5,68 +5,147 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DEDSECK</title>
 <style>
+  :root {
+    --bg: #0b0e1a;
+    --panel: rgba(23, 27, 46, .85);
+    --line: rgba(255, 255, 255, .07);
+    --accent: #6366f1;
+    --accent2: #a855f7;
+    --text: #e8eaf6;
+    --muted: #8a93b2;
+    --ok: #34d399;
+    --err: #f87171;
+    --warn: #fbbf24;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0d1020; color: #e8eaf6; min-height: 100vh; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background:
+      radial-gradient(1000px 600px at 15% -10%, rgba(99,102,241,.16), transparent 60%),
+      radial-gradient(900px 600px at 110% 10%, rgba(168,85,247,.12), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
   @keyframes expand { from { opacity: 0; transform: translateY(-8px); max-height: 0; } to { opacity: 1; transform: none; max-height: 2000px; } }
-  .anim-in { animation: fadeUp .25s ease both; }
+  .anim-in { animation: fadeUp .3s ease both; }
   .anim-in:nth-child(2) { animation-delay: .05s; }
   .anim-in:nth-child(3) { animation-delay: .1s; }
   .anim-in:nth-child(4) { animation-delay: .15s; }
   .anim-in:nth-child(5) { animation-delay: .2s; }
 
   .center { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-  h1 { text-align: center; margin-bottom: 4px; }
-  .sub { text-align: center; color: #8a93b2; margin-bottom: 24px; }
-  .card { background: #171b2e; border-radius: 14px; padding: 24px; width: 340px; box-shadow: 0 8px 30px rgba(0,0,0,.4); animation: fadeUp .25s ease both; }
-  label { display: block; margin: 10px 0 4px; color: #8a93b2; font-size: 14px; }
-  input, textarea, select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2a3050; background: #0d1020; color: #e8eaf6; font-size: 15px; transition: border-color .2s, box-shadow .2s; }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: #5b5bd6; box-shadow: 0 0 0 3px rgba(91,91,214,.25); }
+  h1 {
+    text-align: center; margin-bottom: 4px; font-size: 34px; letter-spacing: 4px;
+    background: linear-gradient(90deg, #818cf8, #c084fc, #818cf8);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shine 6s linear infinite;
+  }
+  @keyframes shine { to { background-position: 200% center; } }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 24px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 26px; width: 350px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5); backdrop-filter: blur(8px);
+    animation: fadeUp .3s ease both;
+  }
+  label { display: block; margin: 12px 0 5px; color: var(--muted); font-size: 14px; }
+  input, textarea, select {
+    width: 100%; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--line);
+    background: rgba(11,14,26,.7); color: var(--text); font-size: 15px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.22); }
 
-  button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 14px; font-size: 15px; background: #5b5bd6; color: #fff; margin-top: 10px; transition: filter .2s, box-shadow .2s; }
-  button:hover { filter: brightness(1.15); }
-  button.gray { background: #2a3050; }
-  button.gray:hover { filter: brightness(1.25); }
-  button.danger { background: #c0392b; }
-  button.danger:hover { filter: brightness(1.15); }
-  button.warn { background: #b9770e; }
-  button.warn:hover { filter: brightness(1.15); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
+  button {
+    cursor: pointer; border: none; border-radius: 10px; padding: 11px 15px; font-size: 15px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; margin-top: 10px; font-weight: 500;
+    box-shadow: 0 4px 14px rgba(99,102,241,.3);
+    transition: filter .2s, transform .15s, box-shadow .2s;
+  }
+  button:hover { filter: brightness(1.12); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,.4); }
+  button:active { transform: translateY(0); }
+  button.gray { background: linear-gradient(135deg, #2e3557, #252b45); box-shadow: none; }
+  button.danger { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 14px rgba(239,68,68,.3); }
+  button.warn { background: linear-gradient(135deg, #f59e0b, #b45309); box-shadow: 0 4px 14px rgba(245,158,11,.3); }
+  button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
-  .err { color: #ff6b6b; margin-top: 10px; font-size: 14px; }
+  .err { color: var(--err); margin-top: 10px; font-size: 14px; }
   .err.shake { animation: shake .3s ease; }
-  .ok { color: #5dd39e; margin-top: 10px; font-size: 14px; }
+  .ok { color: var(--ok); margin-top: 10px; font-size: 14px; }
 
-  .topbar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #171b2e; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 12px rgba(0,0,0,.35); }
-  .topbar b { margin-right: auto; }
+  .topbar {
+    display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+    flex-wrap: wrap; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px);
+  }
+  .topbar .brand { margin-right: auto; font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, #818cf8, #c084fc);
+    -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 17px; }
 
-  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
-  .panel { background: #171b2e; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-  .panel h3 { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .wrap { max-width: 660px; margin: 0 auto; padding: 18px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.35); backdrop-filter: blur(8px);
+  }
+  .panel h3 { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 17px; }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .row > input, .row > select { flex: 1; min-width: 120px; }
-  .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; background: #0d1020; border-radius: 8px; margin-top: 8px; transition: background .2s; }
-  .item:hover { background: #141830; }
+  .row > button { margin-top: 0; }
+
+  .item {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 11px 13px; background: rgba(11,14,26,.6); border: 1px solid transparent;
+    border-radius: 10px; margin-top: 8px; transition: background .2s, border-color .2s, transform .15s;
+  }
+  .item:hover { background: rgba(20,24,48,.7); border-color: var(--line); }
   .item.clickable { cursor: pointer; user-select: none; }
-  .item.selected { border-left: 3px solid #7c7cf0; padding-left: 9px; }
-  .item-anim { animation: fadeUp .25s ease both; }
-  .detail { background: #10142a; border-radius: 10px; padding: 14px; margin-top: 6px; margin-bottom: 4px; animation: expand .25s ease both; }
-  .small { color: #8a93b2; font-size: 13px; }
-  .points { font-size: 22px; font-weight: bold; color: #ffd166; }
-  .divider { border: none; border-top: 1px dashed #2a3050; margin: 18px 0; }
-  .badge { background: #e74c3c; border-radius: 10px; padding: 1px 7px; font-size: 12px; }
-  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-  .dot.on { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
-  .dot.off { background: #555f80; }
-  .banned { color: #ff6b6b; }
-  .locktext { text-align: center; color: #ffd166; font-size: 15px; margin: 8px 0 4px; }
-  .alarmtext { text-align: center; color: #ff6b6b; font-size: 15px; margin: 8px 0 4px; }
+  .item.selected { border-color: var(--accent); background: rgba(99,102,241,.08); }
+  .item-anim { animation: fadeUp .3s ease both; }
+  .usercell { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .detail {
+    background: rgba(11,14,26,.8); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px; margin-top: 6px; margin-bottom: 4px;
+    animation: expand .25s ease both;
+  }
+  .small { color: var(--muted); font-size: 13px; }
+  .points { font-size: 24px; font-weight: 700; color: var(--warn); }
+  .divider { border: none; border-top: 1px dashed var(--line); margin: 18px 0; }
+  .badge { background: #ef4444; border-radius: 10px; padding: 1px 7px; font-size: 12px; color: #fff; }
 
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .pill {
+    display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; line-height: 1.6;
+  }
+  .pill.on { background: rgba(52,211,153,.14); color: var(--ok); }
+  .pill.off { background: rgba(138,147,178,.12); color: var(--muted); }
+  .pill.ban { background: rgba(248,113,113,.14); color: var(--err); }
 
-  #toast { position: fixed; left: 50%; bottom: 24px; background: #5b5bd6; padding: 12px 20px; border-radius: 10px; display: none; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 99; max-width: 90vw; }
+  .locktext { text-align: center; color: var(--warn); font-size: 15px; margin: 8px 0 4px; }
+  .alarmtext { text-align: center; color: var(--err); font-size: 15px; margin: 8px 0 4px; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(5,7,15,.78);
+    display: flex; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px);
+  }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 12px 20px; border-radius: 12px; display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 99; max-width: 90vw;
+  }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -108,7 +187,7 @@
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <b>DEDSECK</b>
+    <span class="brand">DEDSECK</span>
     <span id="whoami" class="small"></span>
     <button id="btnNotif" class="gray">🔔 Вкл. уведомления</button>
     <button id="btnLogout" class="gray">Выйти</button>
@@ -193,7 +272,7 @@
 
       <div class="panel anim-in">
         <h3>🚨 Тревога и защита</h3>
-        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — тот же пин <b>1975</b> (меняется в SQL-функции alarm_deactivate).</div>
+        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — тот же пин <b>1975</b>.</div>
         <hr class="divider">
         <div class="small" style="margin-bottom:4px">Режим слежки: если у посетителя открыта пристыкованная панель разработчика (F12), сайт считает это просмотром кода и сразу включает тревогу. Ловит только пристыкованную панель; возможны редкие ложные срабатывания.</div>
         <button id="btnDevWatch" class="gray">🕵 Режим слежки за кодом: вкл/выкл</button>
@@ -232,16 +311,10 @@
 <script>
 (function () {
 
-/* ═══════════════════════════════════════════════════════
-   Адрес проекта Supabase — сверь его по буквам с панелью
-   (страница проекта, рядом с кнопкой Copy).
-   ═══════════════════════════════════════════════════════ */
 const SUPABASE_URL = "https://hpcjtximqeuqtlidkacv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A";
 
-/* Все коды (пин 1975, активация 20091975, доп-код, код тревоги) хранятся
-   в базе — в SQL-функциях. В файле их нет. */
-const PIN_CHANCE = 0.35; /* шанс доп-проверки при входе: 0.35 = примерно каждый третий */
+const PIN_CHANCE = 0.35;
 
 const ADMIN_EMAIL = 'polostyanoy@mysait.local';
 const ONLINE_MS = 35000;
@@ -259,6 +332,8 @@ let timerArmed = false;
 let alarmOn = false;
 let devWatchOn = false;
 let devReported = false;
+/* Подпись последнего отрисованного состояния списка — чтобы не дёргать страницу зря */
+let lastListSignature = '';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -270,7 +345,6 @@ $('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnloc
 $('btnAlarmOff').onclick = alarmOff;
 $('alarmCode').addEventListener('keydown', e => { if (e.key === 'Enter') alarmOff(); });
 
-/* ── Статусы из базы ── */
 async function getSetting(key) {
   try {
     const { data } = await supabase.from('settings').select('value').eq('key', key).maybeSingle();
@@ -283,14 +357,12 @@ async function isServerOff() {
 async function isAlarm() {
   return (await getSetting('alarm')) === 'true';
 }
-/* Проверяет: не истёк ли таймер доп-кода. Если истёк — блокирует сайт. */
 async function timerCheck() {
   try {
     const { data } = await supabase.rpc('pin_timer_check');
     return !!data;
   } catch (e) { return await isServerOff(); }
 }
-/* Рапорт о подозрительном действии: 5 подряд одного вида — тревога */
 async function reportFail(kind) {
   try { await supabase.rpc('report_fail', { p_kind: kind }); } catch (e) {}
   const a = await isAlarm();
@@ -311,7 +383,6 @@ function updateDevWatchButton() {
     : '🕵 Режим слежки за кодом: ВЫКЛ (нажми, чтобы включить)';
 }
 
-/* Главный экран: блокировка → тревога → форма входа */
 function renderAuthScreen() {
   if (serverOff) {
     $('loginBlock').classList.add('hidden');
@@ -335,7 +406,6 @@ function renderAuthScreen() {
   }
 }
 
-/* Принудительно выкинуть всех на экран тревоги */
 async function forceAlarmScreen() {
   stopped = true;
   clearInterval(pollTimer);
@@ -346,7 +416,6 @@ async function forceAlarmScreen() {
   renderAuthScreen();
 }
 
-/* Снятие тревоги кодом безопасности */
 async function alarmOff() {
   const c = $('alarmCode').value.trim();
   const m = $('alarmMsg');
@@ -381,7 +450,7 @@ async function tryUnlock() {
   if (!ok) {
     m.textContent = err ? ('Ошибка: ' + err) : 'Неверный код';
     void m.offsetWidth; m.classList.add('shake');
-    await reportFail('unlock'); /* неверный код активации — подозрительно */
+    await reportFail('unlock');
     return;
   }
   serverOff = false;
@@ -389,7 +458,6 @@ async function tryUnlock() {
   renderAuthScreen();
 }
 
-/* ── Оверлей доп-проверки с таймером ── */
 function showPinOverlay(deadlineMs) {
   return new Promise(resolve => {
     const ov = $('pinOverlay');
@@ -436,7 +504,6 @@ function showPinOverlay(deadlineMs) {
   });
 }
 
-/* Доп-проверка при входе: 'ok' | 'wrong' | 'expired' */
 async function maybeExtraPin(email) {
   if (email === ADMIN_EMAIL) return 'ok';
   if (Math.random() >= PIN_CHANCE) return 'ok';
@@ -471,7 +538,6 @@ async function login() {
   if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
   const email = nick + '@mysait.local';
 
-  /* Тревога или блокировка — вход закрыт */
   if (await isServerOff()) { serverOff = true; renderAuthScreen(); return; }
   if (alarmOn || await isAlarm()) { alarmOn = true; renderAuthScreen(); return; }
 
@@ -479,7 +545,7 @@ async function login() {
   if (error) {
     m.textContent = /invalid/i.test(error.message) ? 'Неверный ник или пароль' : (error.message || 'Не удалось войти');
     void m.offsetWidth; m.classList.add('shake');
-    await reportFail('login'); /* неверный пароль — считаем */
+    await reportFail('login');
     return;
   }
   const { data: u } = await supabase.auth.getUser();
@@ -506,7 +572,6 @@ async function login() {
     }
     return;
   }
-  /* Вход успешен — счётчики подозрений сбрасываются */
   try { await supabase.rpc('reset_fails'); } catch (e) {}
   savedCreds = { email, pass };
   sessionStorage.setItem('admin_creds', JSON.stringify(savedCreds));
@@ -548,6 +613,7 @@ async function enterApp(nick) {
   $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : '');
   if (isAdmin) {
     $('adminSection').classList.remove('hidden');
+    lastListSignature = '';
     loadAccounts();
     updateServerButton();
     timerArmed = (await getSetting('pin_timer')) === 'true';
@@ -586,7 +652,6 @@ async function kickSelf(atLogin, message) {
   }
 }
 
-/* Смена пароля владельца */
 $('btnAdminPass').onclick = async () => {
   const p = $('newAdminPass').value;
   const msg = $('adminPassMsg');
@@ -600,7 +665,6 @@ $('btnAdminPass').onclick = async () => {
   sessionStorage.setItem('admin_creds', JSON.stringify(savedCreds));
 };
 
-/* Кнопка сервера */
 $('btnServer').onclick = async () => {
   const pin = prompt(serverOff ? 'Введите пин-код, чтобы ВКЛЮЧИТЬ сервер:' : 'Введите пин-код, чтобы ВЫКЛЮЧИТЬ сервер:');
   if (pin === null) return;
@@ -631,7 +695,6 @@ $('btnServer').onclick = async () => {
   }
 };
 
-/* Кнопка таймера доп-кода */
 $('btnTimer').onclick = async () => {
   const pin = prompt('Введите пин-код, чтобы ' + (timerArmed ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ') + ' таймер доп-кода:');
   if (pin === null) return;
@@ -650,7 +713,6 @@ $('btnTimer').onclick = async () => {
   updateTimerButton();
 };
 
-/* Режим слежки за панелью разработчика */
 $('btnDevWatch').onclick = async () => {
   const pin = prompt('Введите пин-код, чтобы ' + (devWatchOn ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ') + ' режим слежки за кодом:');
   if (pin === null) return;
@@ -669,7 +731,6 @@ $('btnDevWatch').onclick = async () => {
   updateDevWatchButton();
 };
 
-/* Проверка на открытую панель разработчика (пристыкованную к окну) */
 async function devWatchCheck() {
   if (!devWatchOn || devReported || stopped) return;
   const dw = (window.outerWidth || 0) - (window.innerWidth || 0);
@@ -684,7 +745,7 @@ $('btnMembers').onclick = () => {
   membersOpen = !membersOpen;
   $('membersBlock').classList.toggle('hidden', !membersOpen);
   $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
-  if (membersOpen) loadAccounts();
+  if (membersOpen) { lastListSignature = ''; loadAccounts(); }
 };
 
 async function updateLastSeen() {
@@ -726,6 +787,18 @@ function isOnline(a) {
   return (Date.now() - new Date(a.last_seen).getTime()) < ONLINE_MS;
 }
 
+/* Активность в человеческом виде: «в сети» / «был N мин назад» / «давно не заходил» */
+function lastSeenText(a) {
+  if (isOnline(a)) return 'в сети';
+  if (!a.last_seen) return 'ни разу не заходил';
+  const mins = Math.floor((Date.now() - new Date(a.last_seen).getTime()) / 60000);
+  if (mins < 60) return 'был ' + Math.max(1, mins) + ' мин назад';
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return 'был ' + hours + ' ч назад';
+  const days = Math.floor(hours / 24);
+  return 'был ' + days + ' дн назад';
+}
+
 function fmtLeft(ms) {
   const totalMin = Math.max(1, Math.round(ms / 60000));
   const h = Math.floor(totalMin / 60), m = totalMin % 60;
@@ -754,47 +827,81 @@ async function loadAccounts() {
   renderAccountList(true);
   fillSendSelect();
 }
-$('btnReload').onclick = loadAccounts;
+$('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); };
+
+/* Сигнатура списка: если ничего не изменилось — не перерисовываем,
+   страница не дёргается и поля в открытой карточке не сбрасываются */
+function listSignature() {
+  return accounts.map(a => [
+    a.id, a.nick, a.points,
+    isOnline(a) ? 1 : 0,
+    isBanned(a) ? a.banned_until : '',
+    a.id === selectedId ? 1 : 0
+  ].join('~')).join(';');
+}
 
 function renderAccountList(animate) {
   const list = $('accList');
   if (!list) return;
+
+  const sig = listSignature();
+  if (sig === lastListSignature) return;
+  lastListSignature = sig;
+
+  /* Сохраняем значения полей открытой карточки, чтобы они не сбрасывались */
+  const oldDet = list.querySelector('.detail');
+  let savedDetAmount = '10', savedBanAmount = '10', savedBanUnit = 'min';
+  if (oldDet) {
+    const da = oldDet.querySelector('#detAmount'); if (da && da.value !== '') savedDetAmount = da.value;
+    const ba = oldDet.querySelector('#banAmount'); if (ba && ba.value !== '') savedBanAmount = ba.value;
+    const bu = oldDet.querySelector('#banUnit'); if (bu) savedBanUnit = bu.value;
+  }
+
+  const scrollY = window.scrollY;
   list.innerHTML = '';
   for (const a of accounts) {
     const isMe = a.user_id === me.id;
-    const online = isOnline(a);
     const banned = isBanned(a);
 
     const d = document.createElement('div');
     d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedId ? ' selected' : '');
     d.innerHTML = `
-      <span>
-        <span class="dot ${online ? 'on' : 'off'}"></span><b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
-        &nbsp;<span class="small">⭐ ${a.points || 0}</span>
-        <br><span class="small" style="margin-left:15px">
-          ${banned ? '<span class="banned">🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) + '</span>' : (online ? 'в сети' : 'не в сети')}
+      <span class="usercell">
+        <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
+        <span>
+          <b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
+          &nbsp;<span class="small">⭐ ${a.points || 0}</span>
+          <br><span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}" style="margin-left:0">
+            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
+          </span>
         </span>
       </span>
       <span class="small">${a.id === selectedId ? '▲ свернуть' : '▼ открыть'}</span>`;
 
     d.onclick = () => {
       selectedId = (selectedId === a.id) ? null : a.id;
+      lastListSignature = '';
       renderAccountList(false);
     };
 
     list.appendChild(d);
 
     if (a.id === selectedId) {
+      const online = isOnline(a);
       const det = document.createElement('div');
       det.className = 'detail';
       det.innerHTML = `
         <div class="row" style="margin-bottom:4px"><span><b>Ник:</b> ${esc(a.nick)}</span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b> <span class="dot ${online ? 'on' : 'off'}" style="margin:0 4px 0 0"></span>${banned ? '<span class="banned">бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) + '</span>' : (online ? 'в сети' : 'не в сети')}</span></div>
+        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b>
+          <span class="pill ${banned ? 'ban' : (online ? 'on' : 'off')}">
+            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
+          </span>
+        </span></div>
         <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
         <div class="small" style="margin:6px 0 2px">Пароль скрыт — Supabase хранит его зашифрованным. Ты сам придумывал его при создании.</div>
         <div class="small" style="margin:10px 0 2px"><b>Баллы (индивидуально):</b></div>
         <div class="row">
-          <input type="number" min="0" value="10" id="detAmount" style="max-width:110px">
+          <input type="number" min="0" value="${esc(savedDetAmount)}" id="detAmount" style="max-width:110px">
         </div>
         <div class="row">
           <button id="detAdd">＋ Начислить</button>
@@ -806,10 +913,10 @@ function renderAccountList(animate) {
           <button id="detKick" class="warn" ${isMe ? 'disabled title="Себя кикнуть нельзя"' : ''}>👋 Кикнуть</button>
         </div>
         <div class="row">
-          <input type="number" min="1" value="10" id="banAmount" style="max-width:90px">
+          <input type="number" min="1" value="${esc(savedBanAmount)}" id="banAmount" style="max-width:90px">
           <select id="banUnit" style="max-width:120px">
-            <option value="min">минут</option>
-            <option value="hours">часов</option>
+            <option value="min" ${savedBanUnit === 'min' ? 'selected' : ''}>минут</option>
+            <option value="hours" ${savedBanUnit === 'hours' ? 'selected' : ''}>часов</option>
           </select>
           <button id="detBan" class="danger" ${isMe ? 'disabled' : ''}>🚫 Запретить вход</button>
           <button id="detUnban" class="gray">Снять бан</button>
@@ -832,6 +939,10 @@ function renderAccountList(animate) {
     }
   }
   if (!accounts.length) list.innerHTML = '<div class="small">Пока никого</div>';
+  /* Не даём странице прыгать при перерисовке */
+  if (window.scrollY !== scrollY && Math.abs(window.scrollY - scrollY) > 2) {
+    window.scrollTo(0, scrollY);
+  }
 }
 
 async function changePointsDet(a, mode) {
@@ -854,6 +965,7 @@ async function changePointsDet(a, mode) {
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: word });
   toast('Готово: у ' + a.nick + ' теперь ' + newVal + ' баллов');
   a.points = newVal;
+  lastListSignature = '';
   renderAccountList(false);
   await refreshPoints();
 }
@@ -881,6 +993,7 @@ async function banMember(a) {
   msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '. Он сейчас будет кикнут.';
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
   a.banned_until = until;
+  lastListSignature = '';
   renderAccountList(false);
 }
 
@@ -889,6 +1002,7 @@ async function unbanMember(a) {
   if (error) { toast('Не получилось снять бан: ' + error.message); return; }
   a.banned_until = null;
   toast('Бан с ' + a.nick + ' снят — он может входить');
+  lastListSignature = '';
   renderAccountList(false);
 }
 
@@ -916,6 +1030,7 @@ async function changePointsAll(mode) {
     }
   }
   msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
+  lastListSignature = '';
   renderAccountList(false);
 }
 
@@ -925,6 +1040,7 @@ async function deleteMember(a) {
   if (error) { toast('Не удалось удалить: ' + error.message); return; }
   if (selectedId === a.id) selectedId = null;
   toast('Участник ' + a.nick + ' удалён — вход ему закрыт');
+  lastListSignature = '';
   await loadAccounts();
 }
 
@@ -955,6 +1071,7 @@ $('btnCreate').onclick = async () => {
   }
   msg.textContent = 'Аккаунт ' + nick + ' создан';
   $('newNick').value = ''; $('newPass').value = '';
+  lastListSignature = '';
   await loadAccounts();
 };
 
@@ -991,12 +1108,10 @@ async function initNotifications() {
 async function poll() {
   if (!me || stopped) return;
 
-  /* 0. Тревога */
   const alarmNow = await isAlarm();
   if (alarmNow !== alarmOn) alarmOn = alarmNow;
   if (alarmOn) { await forceAlarmScreen(); return; }
 
-  /* 1. Не выключен ли сервер + не истёк ли таймер */
   const offNow = await timerCheck();
   if (offNow !== serverOff) {
     serverOff = offNow;
@@ -1012,7 +1127,6 @@ async function poll() {
     return;
   }
 
-  /* 2. Моё состояние: кик, бан, удаление */
   const { data: myRows } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
   if (!myRows || myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
   if (myRows.banned_until && new Date(myRows.banned_until).getTime() > Date.now()) {
@@ -1022,7 +1136,6 @@ async function poll() {
   if (myRows.kick_flag) { kickSelf(false, '👋 Владелец кикнул вас с сайта'); return; }
   updateLastSeen();
 
-  /* 3. Список участников (для владельца) */
   if (isAdmin && membersOpen) {
     const { data: freshAccounts } = await supabase.from('accounts').select('*');
     if (freshAccounts) {
@@ -1033,7 +1146,6 @@ async function poll() {
     }
   }
 
-  /* 4. Новые уведомления */
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
   pollLast = new Date().toISOString();
   const fresh = (data || []).filter(n => (!n.recipient_id || n.recipient_id === me.id) && !notifCache.some(x => x.id === n.id));
@@ -1093,7 +1205,7 @@ $('btnNotif').onclick = async () => {
   const p = await Notification.requestPermission();
   if (p === 'granted') {
     $('btnNotif').textContent = '🔔 Уведомления вкл.';
-    new Notification('Мой сайт', { body: 'Уведомления включены!' });
+    new Notification('DEDSECK', { body: 'Уведомления включены!' });
   }
 };
 
@@ -1103,8 +1215,6 @@ $('btnLogout').onclick = async () => {
   location.reload();
 };
 
-/* При каждом открытии страницы: выходим из аккаунта, проверяем
-   блокировку, тревогу и слежку, показываем нужный экран */
 (async () => {
   await supabase.auth.signOut();
   sessionStorage.removeItem('admin_creds');
