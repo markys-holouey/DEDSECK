@@ -272,7 +272,7 @@
 
       <div class="panel anim-in">
         <h3>🚨 Тревога и защита</h3>
-        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — тот же пин <b>1975</b>.</div>
+        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — твой пин из базы.</div>
         <hr class="divider">
         <div class="small" style="margin-bottom:4px">Режим слежки: если у посетителя открыта пристыкованная панель разработчика (F12), сайт считает это просмотром кода и сразу включает тревогу. Ловит только пристыкованную панель; возможны редкие ложные срабатывания.</div>
         <button id="btnDevWatch" class="gray">🕵 Режим слежки за кодом: вкл/выкл</button>
@@ -332,7 +332,6 @@ let timerArmed = false;
 let alarmOn = false;
 let devWatchOn = false;
 let devReported = false;
-/* Подпись последнего отрисованного состояния списка — чтобы не дёргать страницу зря */
 let lastListSignature = '';
 
 const $ = id => document.getElementById(id);
@@ -787,7 +786,6 @@ function isOnline(a) {
   return (Date.now() - new Date(a.last_seen).getTime()) < ONLINE_MS;
 }
 
-/* Активность в человеческом виде: «в сети» / «был N мин назад» / «давно не заходил» */
 function lastSeenText(a) {
   if (isOnline(a)) return 'в сети';
   if (!a.last_seen) return 'ни разу не заходил';
@@ -817,7 +815,7 @@ async function loadAccounts() {
     accounts = [];
     list.innerHTML = '<div class="err">Ошибка: ' + esc(error.message) +
       (error.message.toLowerCase().includes('row-level')
-        ? '<br><br>Нужно выполнить новый SQL-скрипт (с политиками защиты).'
+        ? '<br><br>Нужно выполнить SQL-скрипт с политиками защиты (из прошлого сообщения).'
         : '') +
       '</div>';
     return;
@@ -829,8 +827,6 @@ async function loadAccounts() {
 }
 $('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); };
 
-/* Сигнатура списка: если ничего не изменилось — не перерисовываем,
-   страница не дёргается и поля в открытой карточке не сбрасываются */
 function listSignature() {
   return accounts.map(a => [
     a.id, a.nick, a.points,
@@ -848,7 +844,6 @@ function renderAccountList(animate) {
   if (sig === lastListSignature) return;
   lastListSignature = sig;
 
-  /* Сохраняем значения полей открытой карточки, чтобы они не сбрасывались */
   const oldDet = list.querySelector('.detail');
   let savedDetAmount = '10', savedBanAmount = '10', savedBanUnit = 'min';
   if (oldDet) {
@@ -939,7 +934,6 @@ function renderAccountList(animate) {
     }
   }
   if (!accounts.length) list.innerHTML = '<div class="small">Пока никого</div>';
-  /* Не даём странице прыгать при перерисовке */
   if (window.scrollY !== scrollY && Math.abs(window.scrollY - scrollY) > 2) {
     window.scrollTo(0, scrollY);
   }
