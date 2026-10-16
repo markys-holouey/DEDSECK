@@ -815,7 +815,7 @@ async function loadAccounts() {
     accounts = [];
     list.innerHTML = '<div class="err">Ошибка: ' + esc(error.message) +
       (error.message.toLowerCase().includes('row-level')
-        ? '<br><br>Нужно выполнить SQL-скрипт с политиками защиты (из прошлого сообщения).'
+        ? '<br><br>Нужно выполнить SQL-скрипт с политиками защиты.'
         : '') +
       '</div>';
     return;
@@ -1121,8 +1121,10 @@ async function poll() {
     return;
   }
 
-  const { data: myRows } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
-  if (!myRows || myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
+  const { data: myRows, error: myErr } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
+  if (myErr) { return; }
+  if (!myRows) { return; }
+  if (myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
   if (myRows.banned_until && new Date(myRows.banned_until).getTime() > Date.now()) {
     kickSelf(false, '🚫 Владелец запретил вам вход. Осталось: ' + fmtLeft(new Date(myRows.banned_until).getTime() - Date.now()));
     return;
