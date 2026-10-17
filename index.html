@@ -450,7 +450,7 @@ async function forceAlarmScreen() {
   $('app').classList.add('hidden');
   $('authScreen').classList.remove('hidden');
   renderAuthScreen();
-  stopped = false; // чтобы watch тревоги продолжал работать
+  stopped = false;
 }
 
 async function alarmOff() {
@@ -624,9 +624,8 @@ async function enterApp(nick) {
   const { data: rows, error: selErr } = await supabase.from('accounts').select('*').eq('user_id', me.id);
   if (selErr) toast('Ошибка чтения таблицы accounts: ' + selErr.message);
   if (!rows || !rows.length) {
-    const { error: insErr } = await supabase.from('accounts')
-      .insert({ user_id: me.id, nick, points: 0, last_seen: new Date().toISOString() });
-    if (insErr) toast('Не удалось создать строку в accounts: ' + insErr.message);
+    await kickSelf(true, 'Такого аккаунта нет. Аккаунты выдаёт только владелец сайта');
+    return;
   } else if (rows[0].deleted) {
     await kickSelf(true, 'Этот аккаунт удалён владельцем сайта');
     return;
@@ -1174,11 +1173,26 @@ $('btnCreate').onclick = async () => {
   if (pass.length < 6) { msg.className = 'err'; msg.textContent = 'Пароль минимум 6 символов'; return; }
   if (accounts.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
   if (!savedCreds) { try { savedCreds = JSON.parse(sessionStorage.getItem('admin_creds')); } catch (e) {} }
+  // разрешаем ник в белом списке — иначе новый пользователь не закрепится в accounts
+  const { error: alErr } = await supabase.from('allowed_nicks').insert({ nick });
+  if (alErr) { msg.className = 'err'; msg.textContent = 'Не удалось разрешить ник: ' + alErr.message; return; }
   const { data, error } = await supabase.auth.signUp({ email: nick + '@mysait.local', password: pass });
-  if (error) { msg.className = 'err'; msg.textContent = error.message; return; }
+  if (error) {
+    msg.className = 'err';
+    msg.textContent = /already registered/i.test(error.message)
+      ? 'Ник занят: кто-то уже зарегистрировал такого пользователя. Выбери другой ник'
+      : error.message;
+    await supabase.from('allowed_nicks').delete().eq('nick', nick);
+    return;
+  }
   const { error: insErr } = await supabase.from('accounts')
     .insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
-  if (insErr) { msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка в таблице нет: ' + insErr.message; return; }
+  if (insErr) {
+    msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка в таблице нет: ' + insErr.message;
+    await supabase.from('allowed_nicks').delete().eq('nick', nick);
+    return;
+  }
+  await supabase.from('allowed_nicks').delete().eq('nick', nick);
   if (savedCreds) {
     await supabase.auth.signOut();
     await supabase.auth.signInWithPassword(savedCreds);
