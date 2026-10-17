@@ -72,6 +72,7 @@
   button.gray { background: linear-gradient(135deg, #2e3557, #252b45); box-shadow: none; }
   button.danger { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 14px rgba(239,68,68,.3); }
   button.warn { background: linear-gradient(135deg, #f59e0b, #b45309); box-shadow: 0 4px 14px rgba(245,158,11,.3); }
+  button.okbtn { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 4px 14px rgba(16,185,129,.3); }
   button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
   .err { color: var(--err); margin-top: 10px; font-size: 14px; }
@@ -204,6 +205,15 @@
         <button id="btnAddRec">Добавить</button>
       </div>
       <div id="recList"></div>
+      <div id="wdSection">
+        <hr class="divider">
+        <div class="small" style="margin-bottom:6px">💰 Вывод баллов — запрос отправляется владельцу. После подтверждения баллы спишутся.</div>
+        <div class="row">
+          <input id="wdAmount" type="number" min="1" placeholder="Сколько вывести">
+          <button id="btnWithdraw">Вывести</button>
+        </div>
+        <div id="wdMsg" class="ok"></div>
+      </div>
     </div>
 
     <div id="adminSection" class="hidden">
@@ -225,7 +235,7 @@
 
         <hr class="divider">
         <button id="btnReload" class="gray" style="margin-top:0">🔄 Обновить список</button>
-        <div class="small" style="margin-top:8px">Нажми на участника: баллы, кик, бан, удаление</div>
+        <div class="small" style="margin-top:8px">Нажми на участника: баллы, кик, бан, удаление, запросы на вывод</div>
         <div id="accList"></div>
 
         <hr class="divider">
@@ -264,7 +274,7 @@
 
       <div class="panel anim-in">
         <h3>🚨 Тревога и защита</h3>
-        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — твой пин из базы.</div>
+        <div class="small" style="margin-bottom:4px">Если кто-то 5 раз подряд вводит неверный пароль или неверные коды — сайт сам уходит в режим тревоги: вместо формы входа появляется запрос кода безопасности. Код безопасности — твой пин из базы. Снятая тревога уходит у всех автоматически.</div>
         <hr class="divider">
         <div class="small" style="margin-bottom:4px">Режим слежки: если у посетителя открыта пристыкованная панель разработчика (F12), сайт считает это просмотром кода и сразу включает тревогу. Ловит только пристыкованную панель; возможны редкие ложные срабатывания.</div>
         <button id="btnDevWatch" class="gray">🕵 Режим слежки за кодом: вкл/выкл</button>
@@ -330,6 +340,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let me = null, myNick = '', isAdmin = false, savedCreds = null;
 let pollTimer = null, pollLast = new Date().toISOString();
 let notifCache = [], seen = new Set(), accounts = [];
+let wdCache = [], wdSeen = new Set();
 let unreadCount = 0;
 let selectedId = null;
 let membersOpen = false;
@@ -379,6 +390,21 @@ async function reportFail(kind) {
   if (a && !alarmOn) { alarmOn = true; forceAlarmScreen(); }
 }
 
+// пока кто-то сидит на экране тревоги — следим: сняли у всех, экран сменится сам
+let alarmWatchTimer = null;
+function startAlarmWatch() {
+  if (alarmWatchTimer) return;
+  alarmWatchTimer = setInterval(async () => {
+    if (!alarmOn || me || stopped) return;
+    const a = await isAlarm();
+    if (!a) {
+      alarmOn = false;
+      renderAuthScreen();
+      toast('Тревога снята владельцем — можно входить');
+    }
+  }, 5000);
+}
+
 function updateServerButton() {
   $('btnServer').textContent = serverOff ? '✅ Включить сервер (пин-код)' : '⏻ Выключить сервер (пин-код)';
 }
@@ -424,6 +450,7 @@ async function forceAlarmScreen() {
   $('app').classList.add('hidden');
   $('authScreen').classList.remove('hidden');
   renderAuthScreen();
+  stopped = false; // чтобы watch тревоги продолжал работать
 }
 
 async function alarmOff() {
@@ -621,10 +648,12 @@ async function enterApp(nick) {
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : '');
+  $('wdSection').classList.toggle('hidden', isAdmin);
   if (isAdmin) {
     $('adminSection').classList.remove('hidden');
     lastListSignature = '';
     loadAccounts();
+    await loadWithdrawals(true);
     updateServerButton();
     timerArmed = (await getSetting('pin_timer')) === 'true';
     updateTimerButton();
@@ -755,7 +784,7 @@ $('btnMembers').onclick = () => {
   membersOpen = !membersOpen;
   $('membersBlock').classList.toggle('hidden', !membersOpen);
   $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
-  if (membersOpen) { lastListSignature = ''; loadAccounts(); }
+  if (membersOpen) { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); }
 };
 
 async function updateLastSeen() {
@@ -791,6 +820,60 @@ $('btnAddRec').onclick = async () => {
   $('recText').value = '';
   loadRecords();
 };
+
+// ===== Вывод баллов: запрос участника =====
+$('btnWithdraw').onclick = async () => {
+  const amt = parseInt($('wdAmount').value, 10);
+  const msg = $('wdMsg');
+  msg.className = 'ok'; msg.textContent = '';
+  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
+  const { data: row } = await supabase.from('accounts').select('points').eq('user_id', me.id).maybeSingle();
+  const pts = row ? (row.points || 0) : 0;
+  if (amt > pts) { msg.className = 'err'; msg.textContent = 'У тебя только ' + pts + ' балл(ов) — столько вывести нельзя'; return; }
+  const { error } = await supabase.from('withdrawals').insert({ user_id: me.id, nick: myNick, amount: amt });
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  msg.textContent = 'Запрос на ' + amt + ' балл(ов) отправлен владельцу';
+  $('wdAmount').value = '';
+  toast('💰 Запрос на вывод отправлен владельцу');
+};
+
+// ===== Вывод баллов: сторона владельца =====
+async function loadWithdrawals(silent) {
+  if (!isAdmin) return;
+  const { data, error } = await supabase.from('withdrawals').select('*').eq('status', 'pending').order('created_at');
+  if (error) return;
+  const fresh = (data || []).filter(w => !wdSeen.has(w.id));
+  wdCache = data || [];
+  fresh.forEach(w => wdSeen.add(w.id));
+  if (!silent && fresh.length) {
+    fresh.forEach(w => toast('💰 Запрос на вывод от ' + (w.nick || '?') + ': ' + w.amount + ' балл(ов)'));
+    beep();
+  }
+  lastListSignature = '';
+  renderAccountList(false);
+}
+
+async function confirmWithdrawal(w) {
+  const { error } = await supabase.from('withdrawals').update({ status: 'done' }).eq('id', w.id);
+  if (error) { toast('Не получилось подтвердить: ' + error.message); return; }
+  const acc = accounts.find(x => x.user_id === w.user_id);
+  if (acc) {
+    const newVal = Math.max(0, (acc.points || 0) - w.amount);
+    const { error: updErr } = await supabase.from('accounts').update({ points: newVal }).eq('id', acc.id);
+    if (updErr) { toast('Баллы не списались: ' + updErr.message); return; }
+    acc.points = newVal;
+    await supabase.from('notifications').insert({
+      recipient_id: w.user_id,
+      text: `✅ Вывод ${w.amount} балл(ов) успешно выполнен! Теперь у вас ${newVal}.`
+    });
+  }
+  wdCache = wdCache.filter(x => x.id !== w.id);
+  wdSeen.add(w.id);
+  toast('✅ Вывод для ' + (w.nick || 'участника') + ' подтверждён — баллы списаны');
+  lastListSignature = '';
+  renderAccountList(false);
+  await refreshPoints();
+}
 
 function isOnline(a) {
   if (!a.last_seen) return false;
@@ -836,14 +919,15 @@ async function loadAccounts() {
   renderAccountList(true);
   fillSendSelect();
 }
-$('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); };
+$('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); };
 
 function listSignature() {
   return accounts.map(a => [
     a.id, a.nick, a.points,
     isOnline(a) ? 1 : 0,
     isBanned(a) ? a.banned_until : '',
-    a.id === selectedId ? 1 : 0
+    a.id === selectedId ? 1 : 0,
+    (a.id === selectedId) ? wdCache.filter(w => w.user_id === a.user_id).length : 0
   ].join('~')).join(';');
 }
 
@@ -871,12 +955,14 @@ function renderAccountList(animate) {
 
     const d = document.createElement('div');
     d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedId ? ' selected' : '');
+    const wdCount = wdCache.filter(w => w.user_id === a.user_id).length;
     d.innerHTML = `
       <span class="usercell">
         <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
         <span>
           <b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
           &nbsp;<span class="small">⭐ ${a.points || 0}</span>
+          ${wdCount ? ' <span class="badge">💰 ' + wdCount + '</span>' : ''}
           <br><span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}" style="margin-left:0">
             ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
           </span>
@@ -914,6 +1000,7 @@ function renderAccountList(animate) {
           <button id="detSub" class="danger">－ Списать</button>
           <button id="detSet" class="gray">＝ Установить</button>
         </div>
+        <div id="wdDetBlock"></div>
         <div class="small" style="margin:10px 0 2px"><b>Кик и бан:</b></div>
         <div class="row">
           <button id="detKick" class="warn" ${isMe ? 'disabled title="Себя кикнуть нельзя"' : ''}>👋 Кикнуть</button>
@@ -932,6 +1019,28 @@ function renderAccountList(animate) {
         </div>
         <div id="detMsg" class="ok"></div>`;
       list.appendChild(det);
+
+      const wdDetBlock = det.querySelector('#wdDetBlock');
+      const myWd = wdCache.filter(w => w.user_id === a.user_id);
+      if (myWd.length) {
+        const hd = document.createElement('div');
+        hd.className = 'small';
+        hd.style.cssText = 'margin:10px 0 2px';
+        hd.innerHTML = '<b>💰 Запросы на вывод:</b>';
+        wdDetBlock.appendChild(hd);
+        for (const w of myWd) {
+          const wr = document.createElement('div');
+          wr.className = 'item';
+          wr.innerHTML = `<span>${esc(w.nick || '?')}: ${w.amount} балл(ов) <span class="small">${new Date(w.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></span>`;
+          const bb = document.createElement('button');
+          bb.className = 'okbtn';
+          bb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
+          bb.textContent = '✅ Вывод успешный';
+          bb.onclick = () => confirmWithdrawal(w);
+          wr.appendChild(bb);
+          wdDetBlock.appendChild(wr);
+        }
+      }
 
       det.querySelector('#detAdd').onclick = () => changePointsDet(a, 'add');
       det.querySelector('#detSub').onclick = () => changePointsDet(a, 'sub');
@@ -1151,6 +1260,7 @@ async function poll() {
       renderAccountList(false);
       fillSendSelect();
     }
+    await loadWithdrawals(false);
   }
 
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
@@ -1232,6 +1342,7 @@ $('btnLogout').onclick = async () => {
   alarmOn = await isAlarm();
   devWatchOn = (await getSetting('devtools_watch')) === 'true';
   renderAuthScreen();
+  startAlarmWatch();
   setInterval(devWatchCheck, 1500);
 })();
 
