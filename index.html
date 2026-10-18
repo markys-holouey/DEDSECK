@@ -282,6 +282,13 @@
       </div>
 
       <div class="panel anim-in">
+        <h3>🛡 Журнал изменений</h3>
+        <div class="small" style="margin-bottom:4px">Кто и что менял в аккаунтах: баллы, баны, удаления, кики. Читает только владелец.</div>
+        <button id="btnAudit" class="gray" style="margin-top:0">🔄 Обновить журнал</button>
+        <div id="auditList"></div>
+      </div>
+
+      <div class="panel anim-in">
         <h3>📣 Разослать</h3>
         <label>Кому</label>
         <select id="sendTo"><option value="all">Всем</option></select>
@@ -351,6 +358,7 @@ let alarmOn = false;
 let devWatchOn = false;
 let devReported = false;
 let lastListSignature = '';
+let rtChannel = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -390,7 +398,28 @@ async function reportFail(kind) {
   if (a && !alarmOn) { alarmOn = true; forceAlarmScreen(); }
 }
 
-// пока кто-то сидит на экране тревоги — следим: сняли у всех, экран сменится сам
+// мгновенный кик/бан через Realtime
+function subscribeRealtime() {
+  if (rtChannel || !me) return;
+  rtChannel = supabase
+    .channel('acc-' + me.id)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'accounts', filter: 'user_id=eq.' + me.id },
+      payload => {
+        const row = payload.new;
+        if (row.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
+        if (row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
+          kickSelf(false, '🚫 Владелец запретил вам вход. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now()));
+          return;
+        }
+        if (row.kick_flag) { kickSelf(false, '👋 Владелец кикнул вас с сайта'); return; }
+      })
+    .subscribe();
+}
+function unsubscribeRealtime() {
+  if (rtChannel) { try { supabase.removeChannel(rtChannel); } catch (e) {} rtChannel = null; }
+}
+
 let alarmWatchTimer = null;
 function startAlarmWatch() {
   if (alarmWatchTimer) return;
@@ -619,7 +648,14 @@ async function enterApp(nick) {
   const { data: u } = await supabase.auth.getUser();
   me = u.user;
   myNick = nick;
-  isAdmin = (me.email === ADMIN_EMAIL);
+
+  // владельца определяем по базе, а не по коду страницы
+  let ia = false;
+  try {
+    const { data: iaRpc } = await supabase.rpc('is_admin');
+    ia = !!iaRpc;
+  } catch (e) {}
+  isAdmin = ia || me.email === ADMIN_EMAIL;
 
   const { data: rows, error: selErr } = await supabase.from('accounts').select('*').eq('user_id', me.id);
   if (selErr) toast('Ошибка чтения таблицы accounts: ' + selErr.message);
@@ -653,6 +689,7 @@ async function enterApp(nick) {
     lastListSignature = '';
     loadAccounts();
     await loadWithdrawals(true);
+    loadAudit();
     updateServerButton();
     timerArmed = (await getSetting('pin_timer')) === 'true';
     updateTimerButton();
@@ -665,6 +702,7 @@ async function enterApp(nick) {
   await refreshPoints();
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, 10000);
+  subscribeRealtime();
   window.scrollTo(0, 0);
 }
 
@@ -675,6 +713,7 @@ async function clearMyKickFlag() {
 
 async function kickSelf(atLogin, message) {
   stopped = true;
+  unsubscribeRealtime();
   clearInterval(pollTimer);
   if (me) await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
   await supabase.auth.signOut();
@@ -783,8 +822,10 @@ $('btnMembers').onclick = () => {
   membersOpen = !membersOpen;
   $('membersBlock').classList.toggle('hidden', !membersOpen);
   $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
-  if (membersOpen) { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); }
+  if (membersOpen) { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); loadAudit(); }
 };
+
+$('btnAudit').onclick = loadAudit;
 
 async function updateLastSeen() {
   if (!me) return;
@@ -820,17 +861,15 @@ $('btnAddRec').onclick = async () => {
   loadRecords();
 };
 
-// ===== Вывод баллов: запрос участника =====
+// ===== Вывод баллов: запрос участника (сервер сам проверяет баланс) =====
 $('btnWithdraw').onclick = async () => {
   const amt = parseInt($('wdAmount').value, 10);
   const msg = $('wdMsg');
   msg.className = 'ok'; msg.textContent = '';
   if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
-  const { data: row } = await supabase.from('accounts').select('points').eq('user_id', me.id).maybeSingle();
-  const pts = row ? (row.points || 0) : 0;
-  if (amt > pts) { msg.className = 'err'; msg.textContent = 'У тебя только ' + pts + ' балл(ов) — столько вывести нельзя'; return; }
-  const { error } = await supabase.from('withdrawals').insert({ user_id: me.id, nick: myNick, amount: amt });
+  const { data, error } = await supabase.rpc('request_withdrawal', { p_amount: amt });
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  if (data !== 'OK') { msg.className = 'err'; msg.textContent = data; return; }
   msg.textContent = 'Запрос на ' + amt + ' балл(ов) отправлен владельцу';
   $('wdAmount').value = '';
   toast('💰 Запрос на вывод отправлен владельцу');
@@ -853,25 +892,39 @@ async function loadWithdrawals(silent) {
 }
 
 async function confirmWithdrawal(w) {
-  const { error } = await supabase.from('withdrawals').update({ status: 'done' }).eq('id', w.id);
+  const { data, error } = await supabase.rpc('approve_withdrawal', { p_wd_id: w.id });
   if (error) { toast('Не получилось подтвердить: ' + error.message); return; }
-  const acc = accounts.find(x => x.user_id === w.user_id);
-  if (acc) {
-    const newVal = Math.max(0, (acc.points || 0) - w.amount);
-    const { error: updErr } = await supabase.from('accounts').update({ points: newVal }).eq('id', acc.id);
-    if (updErr) { toast('Баллы не списались: ' + updErr.message); return; }
-    acc.points = newVal;
-    await supabase.from('notifications').insert({
-      recipient_id: w.user_id,
-      text: `✅ Вывод ${w.amount} балл(ов) успешно выполнен! Теперь у вас ${newVal}.`
-    });
-  }
+  if (data !== 'OK') { toast(data); return; }
   wdCache = wdCache.filter(x => x.id !== w.id);
   wdSeen.add(w.id);
   toast('✅ Вывод для ' + (w.nick || 'участника') + ' подтверждён — баллы списаны');
   lastListSignature = '';
-  renderAccountList(false);
+  await loadAccounts();
+  await loadWithdrawals(true);
   await refreshPoints();
+  loadAudit();
+}
+
+async function rejectWithdrawal(w) {
+  const { data, error } = await supabase.rpc('reject_withdrawal', { p_wd_id: w.id });
+  if (error) { toast('Не получилось отклонить: ' + error.message); return; }
+  if (data !== 'OK') { toast(data); return; }
+  wdCache = wdCache.filter(x => x.id !== w.id);
+  wdSeen.add(w.id);
+  toast('Вывод для ' + (w.nick || 'участника') + ' отклонён — баллы остались у него');
+  lastListSignature = '';
+  renderAccountList(false);
+}
+
+async function loadAudit() {
+  if (!isAdmin) return;
+  const { data, error } = await supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(20);
+  const l = $('auditList');
+  if (!l) return;
+  if (error) { l.innerHTML = '<div class="small">Журнал недоступен</div>'; return; }
+  l.innerHTML = (data || []).map(r =>
+    `<div class="item"><span>${esc(r.actor || 'система')}: ${esc(r.action || '')} — ${esc(r.details || '')}</span><span class="small" style="white-space:nowrap">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`
+  ).join('') || '<div class="small">Пока пусто</div>';
 }
 
 function isOnline(a) {
@@ -1037,6 +1090,12 @@ function renderAccountList(animate) {
           bb.textContent = '✅ Вывод успешный';
           bb.onclick = () => confirmWithdrawal(w);
           wr.appendChild(bb);
+          const rb = document.createElement('button');
+          rb.className = 'danger';
+          rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
+          rb.textContent = '✕ Отклонить';
+          rb.onclick = () => rejectWithdrawal(w);
+          wr.appendChild(rb);
           wdDetBlock.appendChild(wr);
         }
       }
@@ -1081,13 +1140,15 @@ async function changePointsDet(a, mode) {
   lastListSignature = '';
   renderAccountList(false);
   await refreshPoints();
+  loadAudit();
 }
 
 async function kickMember(a) {
   if (!confirm('Кикнуть «' + a.nick + '» с сайта? Он сможет сразу войти снова.')) return;
   const { error } = await supabase.from('accounts').update({ kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не получилось кикнуть: ' + error.message); return; }
-  toast('👋 ' + a.nick + ' будет кикнут в течение 10 секунд');
+  toast('👋 ' + a.nick + ' будет кикнут сразу');
+  loadAudit();
 }
 
 async function banMember(a) {
@@ -1103,11 +1164,12 @@ async function banMember(a) {
   const { error } = await supabase.from('accounts')
     .update({ banned_until: until, kick_flag: true }).eq('id', a.id);
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '. Он сейчас будет кикнут.';
+  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '. Его кикнуло мгновенно.';
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
   a.banned_until = until;
   lastListSignature = '';
   renderAccountList(false);
+  loadAudit();
 }
 
 async function unbanMember(a) {
@@ -1117,6 +1179,7 @@ async function unbanMember(a) {
   toast('Бан с ' + a.nick + ' снят — он может входить');
   lastListSignature = '';
   renderAccountList(false);
+  loadAudit();
 }
 
 $('btnMassAdd').onclick = () => changePointsAll('add');
@@ -1145,16 +1208,18 @@ async function changePointsAll(mode) {
   msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
   lastListSignature = '';
   renderAccountList(false);
+  loadAudit();
 }
 
 async function deleteMember(a) {
-  if (!confirm('Удалить участника «' + a.nick + '»? Если он сейчас на сайте — его выбросит в течение 10 секунд, и он больше не сможет войти.')) return;
+  if (!confirm('Удалить участника «' + a.nick + '»? Его кикнет сразу, и он больше не сможет войти.')) return;
   const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не удалось удалить: ' + error.message); return; }
   if (selectedId === a.id) selectedId = null;
   toast('Участник ' + a.nick + ' удалён — вход ему закрыт');
   lastListSignature = '';
   await loadAccounts();
+  loadAudit();
 }
 
 function fillSendSelect() {
@@ -1165,6 +1230,7 @@ function fillSendSelect() {
   if (cur) st.value = cur;
 }
 
+// ===== Создание аккаунта: белый список + закрепление строки через сервер =====
 $('btnCreate').onclick = async () => {
   const nick = $('newNick').value.trim().toLowerCase();
   const pass = $('newPass').value;
@@ -1173,9 +1239,12 @@ $('btnCreate').onclick = async () => {
   if (pass.length < 6) { msg.className = 'err'; msg.textContent = 'Пароль минимум 6 символов'; return; }
   if (accounts.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
   if (!savedCreds) { try { savedCreds = JSON.parse(sessionStorage.getItem('admin_creds')); } catch (e) {} }
-  // разрешаем ник в белом списке — иначе новый пользователь не закрепится в accounts
+
   const { error: alErr } = await supabase.from('allowed_nicks').insert({ nick });
-  if (alErr) { msg.className = 'err'; msg.textContent = 'Не удалось разрешить ник: ' + alErr.message; return; }
+  if (alErr && !/duplicate/i.test(alErr.message || '')) {
+    msg.className = 'err'; msg.textContent = 'Не удалось разрешить ник: ' + alErr.message; return;
+  }
+
   const { data, error } = await supabase.auth.signUp({ email: nick + '@mysait.local', password: pass });
   if (error) {
     msg.className = 'err';
@@ -1185,18 +1254,35 @@ $('btnCreate').onclick = async () => {
     await supabase.from('allowed_nicks').delete().eq('nick', nick);
     return;
   }
-  const { error: insErr } = await supabase.from('accounts')
-    .insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
-  if (insErr) {
-    msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка в таблице нет: ' + insErr.message;
-    await supabase.from('allowed_nicks').delete().eq('nick', nick);
-    return;
-  }
-  await supabase.from('allowed_nicks').delete().eq('nick', nick);
+
+  // после signUp сессия могла переключиться на нового пользователя —
+  // закрепляем строку от его имени через серверную функцию
+  let claimed = false;
+  try {
+    const { data: okc } = await supabase.rpc('claim_allowed_nick', { p_nick: nick });
+    claimed = !!okc;
+  } catch (e) {}
+
+  // возвращаем админ-сессию
   if (savedCreds) {
     await supabase.auth.signOut();
     await supabase.auth.signInWithPassword(savedCreds);
   }
+
+  if (!claimed) {
+    // подстраховка: закрепляем строку от имени владельца (политика это разрешает)
+    const { error: insErr } = await supabase.from('accounts')
+      .insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
+    if (insErr) {
+      msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка в таблице нет: ' + insErr.message;
+      await supabase.from('allowed_nicks').delete().eq('nick', nick);
+      return;
+    }
+  }
+
+  // ник из белого списка убираем уже под админ-сессией
+  await supabase.from('allowed_nicks').delete().eq('nick', nick);
+
   msg.textContent = 'Аккаунт ' + nick + ' создан';
   $('newNick').value = ''; $('newPass').value = '';
   lastListSignature = '';
@@ -1275,6 +1361,7 @@ async function poll() {
       fillSendSelect();
     }
     await loadWithdrawals(false);
+    loadAudit();
   }
 
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
@@ -1345,6 +1432,7 @@ $('btnNotifOn').onclick = async () => {
 
 $('btnLogout').onclick = async () => {
   clearInterval(pollTimer);
+  unsubscribeRealtime();
   await supabase.auth.signOut();
   location.reload();
 };
