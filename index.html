@@ -20,12 +20,10 @@
     background: radial-gradient(circle, rgba(168,85,247,.2), transparent 70%); top:-25vw; right:-20vw;
     animation: floatOrb 14s ease-in-out infinite alternate; }
   @keyframes floatOrb { to { transform: translate(-12vw,10vh) scale(1.15); } }
-
   @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
   @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
   @keyframes neonPulse { 0%,100%{box-shadow:0 0 18px rgba(168,85,247,.35),0 0 46px rgba(124,58,237,.18);} 50%{box-shadow:0 0 30px rgba(168,85,247,.6),0 0 70px rgba(124,58,237,.3);} }
   .anim-in { animation: fadeUp .3s ease both; }
-
   .center { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px 0; }
   h1 { text-align:center; margin-bottom:4px; font-size:38px; letter-spacing:6px;
     background:linear-gradient(90deg,#c084fc,#e879f9,#c084fc); background-size:200% auto;
@@ -39,36 +37,31 @@
   input, textarea, select { width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line);
     background:rgba(15,8,28,.75); color:var(--text); font-size:15px; transition:border-color .2s, box-shadow .2s; }
   input:focus, textarea:focus, select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(168,85,247,.25),0 0 14px rgba(168,85,247,.35); }
-
   button { cursor:pointer; border:none; border-radius:10px; padding:11px 15px; font-size:15px;
     background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; margin-top:10px; font-weight:500;
     box-shadow:0 0 14px rgba(168,85,247,.4); transition:filter .2s, transform .15s, box-shadow .2s; }
-  button:hover { filter:brightness(1.15); transform:translateY(-1px); box-shadow:0 0 22px rgba(168,85,247,.6); }
+  button:hover { filter:brightness(1.15); transform:translateY(-1px); }
   button.gray { background:linear-gradient(135deg,#2b1d47,#221540); box-shadow:0 0 10px rgba(168,85,247,.2); }
   button.danger { background:linear-gradient(135deg,#ef4444,#b91c1c); box-shadow:0 0 14px rgba(239,68,68,.35); }
   button.warn { background:linear-gradient(135deg,#f59e0b,#b45309); box-shadow:0 0 14px rgba(245,158,11,.35); }
   button.okbtn { background:linear-gradient(135deg,#10b981,#047857); box-shadow:0 0 14px rgba(16,185,129,.35); }
   button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
-
   .err { color:var(--err); margin-top:10px; font-size:14px; }
   .err.shake { animation:shake .3s ease; }
   .ok { color:var(--ok); margin-top:10px; font-size:14px; }
-
   .topbar { display:flex; align-items:center; gap:10px; padding:12px 18px; background:rgba(26,16,44,.9);
     border-bottom:1px solid var(--line); flex-wrap:wrap; position:sticky; top:0; z-index:10; backdrop-filter:blur(10px);
     box-shadow:0 2px 20px rgba(168,85,247,.15); }
   .topbar .brand { margin-right:auto; font-weight:700; letter-spacing:3px; font-size:17px;
     background:linear-gradient(90deg,#c084fc,#e879f9); -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 0 8px rgba(192,132,252,.5)); }
-
   .wrap { max-width:680px; margin:0 auto; padding:18px; }
   .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px;
     box-shadow:0 0 22px rgba(168,85,247,.14), inset 0 0 30px rgba(124,58,237,.06); backdrop-filter:blur(10px); }
-  .panel h3 { margin-bottom:12px; display:flex; align-items:center; gap:8px; font-size:17px; text-shadow:0 0 10px rgba(192,132,252,.4); }
+  .panel h3 { margin-bottom:12px; font-size:17px; text-shadow:0 0 10px rgba(192,132,252,.4); }
   .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .row > input, .row > select { flex:1; min-width:120px; }
   .row > button { margin-top:0; }
-
   .item { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 13px;
     background:rgba(15,8,28,.6); border:1px solid transparent; border-radius:10px; margin-top:8px; transition:background .2s, border-color .2s; }
   .item:hover { background:rgba(35,20,60,.7); border-color:var(--line); }
@@ -116,7 +109,7 @@
         <input id="pass" type="password" placeholder="пароль от ника" autocomplete="new-password">
         <button id="btnLogin" style="width:100%">Войти</button>
         <div id="authMsg" class="err"></div>
-        <div class="small" style="text-align:center;margin-top:12px">Аккаунты выдаёт владелец сайта</div>
+        <div class="small" style="text-align:center;margin-top:12px">Аккаунты участников выдаёт владелец. Гость может зарегистрироваться сам.</div>
       </div>
       <div id="lockBlock" class="hidden">
         <div class="locktext">🔒 Сайт заблокирован владельцем.<br>Для активации введите код:</div>
@@ -140,12 +133,14 @@
   <div class="topbar">
     <span class="brand">DEDSECK</span>
     <span id="whoami" class="small"></span>
-    <button id="btnShop" class="gray">🛒 Магазин</button>
+    <button id="btnBack" class="gray hidden">← Назад</button>
+    <button id="btnShopPage" class="gray">🛒 Магазин</button>
     <button id="btnNotifView" class="gray">🔔 Уведомления</button>
     <button id="btnLogout" class="gray">Выйти</button>
   </div>
 
-  <div class="wrap">
+  <!-- ГЛАВНАЯ СТРАНИЦА -->
+  <div id="pageMain" class="wrap">
     <div class="panel anim-in">
       <h3>👤 Кабинет</h3>
       <div class="small">Мои баллы</div>
@@ -184,9 +179,6 @@
       <div class="panel anim-in">
         <button id="btnMembers" style="width:100%;font-size:16px;padding:14px">👥 Участники</button>
       </div>
-      <div class="panel anim-in">
-        <button id="btnGuests" style="width:100%;font-size:16px;padding:14px">👤 Гости</button>
-      </div>
 
       <div id="membersBlock" class="panel hidden">
         <h3>👥 Участники</h3>
@@ -217,7 +209,23 @@
       </div>
 
       <div class="panel anim-in">
+        <button id="btnGuests" style="width:100%;font-size:16px;padding:14px">👤 Гости</button>
+      </div>
+
+      <div id="guestsBlock" class="panel hidden">
+        <h3>👤 Гости</h3>
+        <div class="small" style="margin-bottom:4px"><b>Запросы гостей на баллы:</b></div>
+        <div id="guestReqsList"></div>
+        <hr class="divider">
+        <div class="small" style="margin-bottom:4px"><b>Зарегистрированные гости:</b> нажми на гостя — баллы, бан, удаление.</div>
+        <button id="btnGuestsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
+        <div id="guestList"></div>
+        <div id="guestDetMsg" class="ok"></div>
+      </div>
+
+      <div class="panel anim-in">
         <h3>🔑 Пароль владельца</h3>
+        <div class="small" style="margin-bottom:4px">После смены вход — по новому паролю.</div>
         <input id="newAdminPass" type="password" placeholder="Новый пароль (мин. 6 символов)">
         <button id="btnAdminPass">Сменить пароль</button>
         <div id="adminPassMsg" class="ok"></div>
@@ -245,6 +253,7 @@
 
       <div class="panel anim-in">
         <h3>🛡 Журнал изменений</h3>
+        <div class="small" style="margin-bottom:4px">Кто и что менял в аккаунтах. Читает только владелец.</div>
         <button id="btnAudit" class="gray" style="margin-top:0">🔄 Обновить журнал</button>
         <div id="auditList"></div>
       </div>
@@ -260,40 +269,24 @@
       </div>
     </div>
   </div>
-</div>
 
-<!-- Уведомления -->
-<div id="notifModal" class="overlay hidden">
-  <div class="card" style="width:420px">
-    <div class="row" style="justify-content:space-between;margin-bottom:6px">
-      <h3 style="margin:0">🔔 Уведомления <span id="notifBadge"></span></h3>
-      <button id="btnNotifClose" class="gray" style="padding:6px 12px">✕</button>
+  <!-- СТРАНИЦА МАГАЗИНА -->
+  <div id="pageShop" class="wrap hidden">
+    <div class="panel anim-in">
+      <h3>🛒 Магазин DEDSECK</h3>
+      <div class="small">Выбери товар и способ оплаты. Покупка подтверждается владельцем.</div>
     </div>
-    <div id="notifList" style="max-height:55vh;overflow:auto;padding-right:4px"></div>
-    <div class="row" style="margin-top:10px">
-      <button id="btnReadMark" class="gray" style="font-size:13px">Отметить прочитанным</button>
-      <button id="btnNotifOn" class="gray" style="font-size:13px">🔊 Вкл. уведомления</button>
-    </div>
-  </div>
-</div>
 
-<!-- Магазин -->
-<div id="shopModal" class="overlay hidden">
-  <div class="card" style="width:580px;max-width:95vw;max-height:92vh;overflow:auto">
-    <div class="row" style="justify-content:space-between;margin-bottom:6px">
-      <h3 style="margin:0">🛒 Магазин</h3>
-      <button id="btnShopClose" class="gray" style="padding:6px 12px">✕</button>
-    </div>
-    <div id="pendingBlock" class="hidden">
-      <div class="small" style="margin:6px 0 2px"><b>💰 Заявки на покупку (ожидают подтверждения):</b></div>
+    <div id="pendingBlock" class="panel hidden">
+      <h3>💰 Заявки на покупку</h3>
       <div id="pendingList"></div>
       <hr class="divider">
       <div class="small" style="margin-bottom:4px"><b>🧾 Все покупки:</b></div>
       <div id="allPurchases"></div>
     </div>
-    <div id="shopAdminBlock" class="hidden">
-      <hr class="divider">
-      <div class="small" style="margin-bottom:4px"><b>Выставить товар</b></div>
+
+    <div id="shopAdminBlock" class="panel hidden">
+      <h3>📦 Выставить товар</h3>
       <div id="dropZone">
         Перетащите фото сюда или нажмите, чтобы выбрать<br>
         <span class="small">(с телефона — выбрать фото из галереи)</span>
@@ -311,8 +304,12 @@
       <button id="btnAddProduct">Выставить</button>
       <div id="addProdMsg" class="ok"></div>
     </div>
-    <hr class="divider">
-    <div id="productList"></div>
+
+    <div class="panel anim-in">
+      <h3>🛍 Товары</h3>
+      <button id="btnShopReload" class="gray" style="margin-top:0">🔄 Обновить</button>
+      <div id="productList"></div>
+    </div>
   </div>
 </div>
 
@@ -342,7 +339,7 @@
   </div>
 </div>
 
-<!-- Регистрация гостя -->
+<!-- Регистрация гостя (мгновенная) -->
 <div id="guestRegModal" class="overlay hidden">
   <div class="card" style="width:360px">
     <div class="row" style="justify-content:space-between;margin-bottom:6px">
@@ -353,28 +350,23 @@
     <input id="gNick" placeholder="придумай ник" autocomplete="off">
     <label>Пароль (мин. 6 символов)</label>
     <input id="gPass" type="password" autocomplete="new-password">
-    <label>Сколько баллов нужно</label>
-    <input id="gPoints" type="number" min="1" placeholder="например 100">
-    <button id="btnGuestCreate" style="width:100%">Отправить заявку</button>
+    <button id="btnGuestCreate" style="width:100%">Зарегистрироваться</button>
     <div id="gMsg" class="ok"></div>
   </div>
 </div>
 
-<!-- Гости (владелец) -->
-<div id="guestsModal" class="overlay hidden">
-  <div class="card" style="width:520px;max-width:95vw;max-height:92vh;overflow:auto">
+<!-- Уведомления -->
+<div id="notifModal" class="overlay hidden">
+  <div class="card" style="width:420px">
     <div class="row" style="justify-content:space-between;margin-bottom:6px">
-      <h3 style="margin:0">👤 Гости</h3>
-      <button id="btnGuestsClose" class="gray" style="padding:6px 12px">✕</button>
+      <h3 style="margin:0">🔔 Уведомления <span id="notifBadge"></span></h3>
+      <button id="btnNotifClose" class="gray" style="padding:6px 12px">✕</button>
     </div>
-    <div class="small" style="margin:8px 0 2px"><b>Заявки на регистрацию:</b></div>
-    <div id="guestRegsList"></div>
-    <hr class="divider">
-    <div class="small" style="margin:8px 0 2px"><b>Запросы на баллы:</b></div>
-    <div id="guestReqsList"></div>
-    <hr class="divider">
-    <div class="small" style="margin:8px 0 2px"><b>Зарегистрированные гости:</b></div>
-    <div id="guestList"></div>
+    <div id="notifList" style="max-height:55vh;overflow:auto;padding-right:4px"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="btnReadMark" class="gray" style="font-size:13px">Отметить прочитанным</button>
+      <button id="btnNotifOn" class="gray" style="font-size:13px">🔊 Вкл. уведомления</button>
+    </div>
   </div>
 </div>
 
@@ -402,18 +394,17 @@ const ADMIN_EMAIL = 'polostyanoy@mysait.local';
 const ONLINE_MS = 35000;
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let me = null, myNick = '', isAdmin = false, savedCreds = null;
+let me = null, myNick = '', isAdmin = false, isGuestAcc = false, savedCreds = null;
 let pollTimer = null, pollLast = new Date().toISOString();
 let notifCache = [], seen = new Set(), accounts = [], guestAccs = [];
-let wdCache = [], wdSeen = new Set();
-let unreadCount = 0, selectedId = null, membersOpen = false;
+let wdCache = [], wdSeen = new Set(), grSeen = new Set();
+let unreadCount = 0, selectedId = null, selectedGuestId = null;
+let membersOpen = false, guestsOpen = false;
 let stopped = false, serverOff = false, timerArmed = false;
 let alarmOn = false, devWatchOn = false, devReported = false;
-let lastListSignature = '', rtChannel = null;
-let shopCache = [], prodMap = {};
-let wdCacheAll = [];
-let puSeen = new Set(), gSeen = new Set(), grSeen = new Set();
-let pendingPhoto = null, currentBuy = null;
+let lastListSignature = '', lastGuestSignature = '', rtChannel = null;
+let shopCache = [], prodMap = {}, puSeen = new Set();
+let pendingPhoto = null, currentBuy = null, curPage = 'main';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -424,19 +415,17 @@ $('btnUnlock').onclick = tryUnlock;
 $('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 $('btnAlarmOff').onclick = alarmOff;
 $('alarmCode').addEventListener('keydown', e => { if (e.key === 'Enter') alarmOff(); });
-$('btnShopAuth').onclick = openShop;
-$('btnShop').onclick = openShop;
-$('btnShopClose').onclick = closeShop;
+$('btnShopAuth').onclick = () => showPage('shop');
+$('btnShopPage').onclick = () => showPage('shop');
+$('btnBack').onclick = () => showPage('main');
+$('btnShopReload').onclick = loadShop;
 $('btnBuyCancel').onclick = closeBuy;
 $('btnNotifView').onclick = () => { $('notifModal').classList.remove('hidden'); renderNotifs(); };
 $('btnNotifClose').onclick = () => $('notifModal').classList.add('hidden');
+$('notifModal').addEventListener('click', e => { if (e.target === $('notifModal')) $('notifModal').classList.add('hidden'); });
 $('btnGuestReg').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
 $('btnGuestRegClose').onclick = () => $('guestRegModal').classList.add('hidden');
-$('btnGuests').onclick = () => { $('guestsModal').classList.remove('hidden'); loadGuests(true); };
-$('btnGuestsClose').onclick = () => $('guestsModal').classList.add('hidden');
-['notifModal','shopModal','buyModal','guestRegModal','guestsModal'].forEach(id => {
-  $(id).addEventListener('click', e => { if (e.target === $(id)) $(id).classList.add('hidden'); });
-});
+$('guestRegModal').addEventListener('click', e => { if (e.target === $('guestRegModal')) $('guestRegModal').classList.add('hidden'); });
 
 async function getSetting(key) {
   try {
@@ -671,12 +660,13 @@ async function enterApp(nick, row) {
     const { data: rr } = await supabase.from('accounts').select('*').eq('user_id', me.id);
     row = rr && rr[0];
   }
-  if (!row) { await kickSelf(true, 'Такого аккаунта нет. Аккаунты выдаёт только владелец сайта'); return; }
+  if (!row) { await kickSelf(true, 'Такого аккаунта нет.'); return; }
   if (row.deleted) { await kickSelf(true, 'Этот аккаунт удалён владельцем сайта'); return; }
   if (row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
     await kickSelf(true, 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now()));
     return;
   }
+  isGuestAcc = !!row.is_guest;
   await clearMyKickFlag();
   updateLastSeen();
 
@@ -686,9 +676,9 @@ async function enterApp(nick, row) {
 
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
-  $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (row.is_guest ? ' (гость)' : ''));
+  $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (isGuestAcc ? ' (гость)' : ''));
   $('wdSection').classList.toggle('hidden', isAdmin);
-  $('guestReqSection').classList.toggle('hidden', isAdmin || !row.is_guest);
+  $('guestReqSection').classList.toggle('hidden', isAdmin || !isGuestAcc);
   if (isAdmin) {
     $('adminSection').classList.remove('hidden');
     lastListSignature = '';
@@ -706,9 +696,23 @@ async function enterApp(nick, row) {
   await loadRecords();
   await loadHistory();
   await refreshPoints();
+  showPage('main');
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, 10000);
   subscribeRealtime();
+  window.scrollTo(0, 0);
+}
+
+function showPage(page) {
+  curPage = page;
+  $('pageMain').classList.toggle('hidden', page !== 'main');
+  $('pageShop').classList.toggle('hidden', page !== 'shop');
+  $('btnBack').classList.toggle('hidden', page === 'main');
+  $('btnShopPage').classList.toggle('hidden', page !== 'main');
+  if (page === 'shop') {
+    loadShop();
+    if (isAdmin) loadPendingPurchases(true);
+  }
   window.scrollTo(0, 0);
 }
 
@@ -803,6 +807,15 @@ $('btnMembers').onclick = () => {
   $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
   if (membersOpen) { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); loadAudit(); }
 };
+
+$('btnGuests').onclick = () => {
+  guestsOpen = !guestsOpen;
+  $('guestsBlock').classList.toggle('hidden', !guestsOpen);
+  $('btnGuests').textContent = guestsOpen ? '👤 Гости ▲' : '👤 Гости';
+  if (guestsOpen) { lastGuestSignature = ''; loadGuestsData(true); }
+};
+
+$('btnGuestsReload').onclick = () => { lastGuestSignature = ''; loadGuestsData(true); };
 $('btnAudit').onclick = loadAudit;
 $('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); };
 
@@ -931,6 +944,8 @@ async function loadAccounts() {
   if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
   renderAccountList(true);
   fillSendSelect();
+  lastGuestSignature = '';
+  renderGuestList(false);
 }
 
 function listSignature() {
@@ -947,7 +962,6 @@ function renderAccountList(animate) {
   const sig = listSignature();
   if (sig === lastListSignature) return;
   lastListSignature = sig;
-
   const oldDet = list.querySelector('.detail');
   let savedDetAmount = '10', savedBanAmount = '10', savedBanUnit = 'min';
   if (oldDet) {
@@ -955,7 +969,6 @@ function renderAccountList(animate) {
     const ba = oldDet.querySelector('#banAmount'); if (ba && ba.value !== '') savedBanAmount = ba.value;
     const bu = oldDet.querySelector('#banUnit'); if (bu) savedBanUnit = bu.value;
   }
-
   const scrollY = window.scrollY;
   list.innerHTML = '';
   for (const a of accounts) {
@@ -1110,7 +1123,9 @@ async function unbanMember(a) {
   a.banned_until = null;
   toast('Бан снят');
   lastListSignature = '';
+  lastGuestSignature = '';
   renderAccountList(false);
+  renderGuestList(false);
   loadAudit();
 }
 
@@ -1139,7 +1154,9 @@ async function changePointsAll(mode) {
   }
   msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
   lastListSignature = '';
+  lastGuestSignature = '';
   renderAccountList(false);
+  renderGuestList(false);
   loadAudit();
 }
 
@@ -1169,6 +1186,7 @@ $('btnCreate').onclick = async () => {
   if (!nick || !pass) { msg.className = 'err'; msg.textContent = 'Заполни ник и пароль'; return; }
   if (pass.length < 6) { msg.className = 'err'; msg.textContent = 'Пароль минимум 6 символов'; return; }
   if (accounts.some(a => a.nick === nick) || guestAccs.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
+  if (!savedCreds) { try { savedCreds = JSON.parse(sessionStorage.getItem('admin_creds')); } catch (e) {} }
   const { error: alErr } = await supabase.from('allowed_nicks').insert({ nick });
   if (alErr && !/duplicate/i.test(alErr.message || '')) { msg.className = 'err'; msg.textContent = 'Не удалось разрешить ник: ' + alErr.message; return; }
   const { data, error } = await supabase.auth.signUp({ email: nick + '@mysait.local', password: pass });
@@ -1203,23 +1221,33 @@ $('btnSend').onclick = async () => {
   $('sendText').value = '';
 };
 
-// ===== ГОСТЫ =====
+// ===== ГОСТЫ: мгновенная регистрация =====
 $('btnGuestCreate').onclick = async () => {
   const msg = $('gMsg'); msg.className = 'ok'; msg.textContent = '';
   const nick = $('gNick').value.trim().toLowerCase(), pass = $('gPass').value;
-  const amt = parseInt($('gPoints').value, 10);
-  if (!nick || pass.length < 6) { msg.className = 'err'; msg.textContent = 'Ник и пароль (мин. 6 символов)'; void msg.offsetWidth; msg.classList.add('shake'); return; }
-  if (isNaN(amt) || amt < 1) { msg.className = 'err'; msg.textContent = 'Укажите, сколько баллов нужно'; return; }
-  const { error } = await supabase.from('guests').insert({ nick, pass, points_request: amt });
-  if (error) {
+  if (!nick || pass.length < 6) {
     msg.className = 'err';
-    msg.textContent = /duplicate|unique/i.test(error.message) ? 'Такой ник уже занят' : ('Не получилось: ' + error.message);
+    msg.textContent = 'Ник и пароль (мин. 6 символов)';
+    void msg.offsetWidth; msg.classList.add('shake');
     return;
   }
-  msg.textContent = 'Заявка отправлена владельцу — он подтвердит и начислит баллы';
-  $('gNick').value = ''; $('gPass').value = ''; $('gPoints').value = '';
-  toast('👤 Заявка гостя отправлена');
-  setTimeout(() => $('guestRegModal').classList.add('hidden'), 1400);
+  if (accounts.some(a => a.nick === nick) || guestAccs.some(a => a.nick === nick)) {
+    msg.className = 'err'; msg.textContent = 'Такой ник уже занят'; return;
+  }
+  const { data, error } = await supabase.auth.signUp({ email: nick + '@guest.local', password: pass });
+  if (error) {
+    msg.className = 'err';
+    msg.textContent = /already registered/i.test(error.message) ? 'Такой ник уже занят' : ('Не получилось: ' + error.message);
+    return;
+  }
+  const { error: insErr } = await supabase.from('accounts')
+    .insert({ user_id: data.user.id, nick, points: 0, is_guest: true, last_seen: null });
+  if (insErr) { msg.className = 'err'; msg.textContent = 'Аккаунт создан, но строка не записалась: ' + insErr.message; return; }
+  await supabase.auth.signOut();
+  msg.textContent = 'Готово! Аккаунт создан — теперь войди своим ником и паролем';
+  $('gNick').value = ''; $('gPass').value = '';
+  toast('👤 Гостевой аккаунт создан. Войдите через форму входа');
+  setTimeout(() => $('guestRegModal').classList.add('hidden'), 1800);
 };
 
 $('btnGuestReq').onclick = async () => {
@@ -1233,113 +1261,181 @@ $('btnGuestReq').onclick = async () => {
   toast('🎁 Запрос на баллы отправлен');
 };
 
-async function loadGuests(silent) {
+// ===== Гости: раскрывающийся список (как участники) =====
+async function loadGuestsData(silent) {
   if (!isAdmin) return;
-  const { data: regs } = await supabase.from('guests').select('*').eq('status', 'pending').order('created_at');
-  const fresh = (regs || []).filter(g => !gSeen.has(g.id));
-  fresh.forEach(g => gSeen.add(g.id));
-  if (!silent && fresh.length) { fresh.forEach(g => toast('👤 Новая заявка гостя: ' + g.nick + ' (+' + g.points_request + ')')); beep(); }
   const { data: reqs } = await supabase.from('guest_requests').select('*').eq('status', 'pending').order('created_at');
   const freshR = (reqs || []).filter(r => !grSeen.has(r.id));
   freshR.forEach(r => grSeen.add(r.id));
-  if (!silent && freshR.length) { freshR.forEach(r => toast('🎁 Гость ' + (r.nick || '?') + ' просит ' + r.amount + ' балл(ов)')); beep(); }
-  renderGuestsModal(regs || [], reqs || []);
+  if (!silent && freshR.length) {
+    freshR.forEach(r => toast('🎁 Гость ' + (r.nick || '?') + ' просит ' + r.amount + ' балл(ов)'));
+    beep();
+  }
+  renderGuestReqs(reqs || []);
+  if (!accounts.length) await loadAccounts();
+  renderGuestList(false);
 }
 
-async function approveGuest(g) {
-  if (accounts.some(a => a.nick === g.nick) || guestAccs.some(a => a.nick === g.nick)) { toast('Ник уже занят участником'); return; }
-  const { data, error } = await supabase.auth.signUp({ email: g.nick + '@guest.local', password: g.pass });
-  if (error) { toast('Не получилось: ' + error.message); return; }
-  if (savedCreds) { await supabase.auth.signOut(); await supabase.auth.signInWithPassword(savedCreds); }
-  const { error: insErr } = await supabase.from('accounts')
-    .insert({ user_id: data.user.id, nick: g.nick, points: g.points_request || 0, is_guest: true, last_seen: null });
-  if (insErr) { toast('Гость создан, но строка не записалась: ' + insErr.message); return; }
-  await supabase.from('guests').update({ status: 'approved', user_id: data.user.id, pass: '' }).eq('id', g.id);
-  await supabase.from('notifications').insert({ recipient_id: data.user.id, text: '✅ Владелец подтвердил вашу регистрацию. Начислено ' + (g.points_request || 0) + ' балл(ов).' });
-  toast('✅ Гость ' + g.nick + ' зарегистрирован');
-  lastListSignature = '';
-  await loadAccounts();
-  loadGuests(true);
+function guestListSignature() {
+  return guestAccs.map(a => [
+    a.id, a.nick, a.points, isOnline(a) ? 1 : 0, isBanned(a) ? a.banned_until : '',
+    a.id === selectedGuestId ? 1 : 0
+  ].join('~')).join(';') + '|' + grSeen.size;
 }
 
-async function rejectGuest(g) {
-  if (!confirm('Отклонить заявку гостя «' + g.nick + '»?')) return;
-  await supabase.from('guests').delete().eq('id', g.id);
-  toast('Заявка отклонена');
-  loadGuests(true);
-}
-
-function renderGuestsModal(regs, reqs) {
-  const rl = $('guestRegsList'), ql = $('guestReqsList'), al = $('guestList');
-  if (!rl) return;
-  rl.innerHTML = regs.length ? '' : '<div class="small">Заявок пока нет</div>';
-  regs.forEach(g => {
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span><b>${esc(g.nick)}</b> · хочет ${g.points_request} балл(ов)</span>`;
-    const row = document.createElement('div'); row.className = 'row';
-    const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Подтвердить';
-    okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px'; okb.onclick = () => approveGuest(g);
-    const rb = document.createElement('button'); rb.className = 'danger'; rb.textContent = '✕ Отклонить';
-    rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px'; rb.onclick = () => rejectGuest(g);
-    row.appendChild(okb); row.appendChild(rb); d.appendChild(row); rl.appendChild(d);
-  });
-  ql.innerHTML = reqs.length ? '' : '<div class="small">Запросов пока нет</div>';
+function renderGuestReqs(reqs) {
+  const ql = $('guestReqsList');
+  if (!ql) return;
+  ql.innerHTML = reqs.length ? '' : '<div class="small">Запросов на баллы пока нет</div>';
   reqs.forEach(r => {
     const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span>${esc(r.nick || '?')} просит ${r.amount} балл(ов)</span>`;
+    d.innerHTML = `<span>${esc(r.nick || '?')} просит ${r.amount} балл(ов) · <span class="small">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></span>`;
     const row = document.createElement('div'); row.className = 'row';
     const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Начислить';
     okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
     okb.onclick = async () => {
       const { data } = await supabase.rpc('approve_guest_request', { p_id: r.id });
-      if (data === 'OK') { toast('✅ Баллы начислены'); await loadAccounts(); loadGuests(true); await refreshPoints(); }
+      if (data === 'OK') { toast('✅ Баллы начислены'); await loadAccounts(); await loadGuestsData(true); }
       else toast(data);
     };
     const rb = document.createElement('button'); rb.className = 'danger'; rb.textContent = '✕ Отклонить';
     rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    rb.onclick = async () => { await supabase.rpc('reject_guest_request', { p_id: r.id }); loadGuests(true); };
+    rb.onclick = async () => {
+      const { data } = await supabase.rpc('reject_guest_request', { p_id: r.id });
+      if (data === 'OK') toast('Запрос отклонён'); else toast(data);
+      loadGuestsData(true);
+    };
     row.appendChild(okb); row.appendChild(rb); d.appendChild(row); ql.appendChild(d);
   });
-  al.innerHTML = guestAccs.length ? '' : '<div class="small">Гостей пока нет</div>';
-  guestAccs.forEach(a => {
+}
+
+function renderGuestList(animate) {
+  const list = $('guestList');
+  if (!list || !isAdmin) return;
+  const sig = guestListSignature();
+  if (sig === lastGuestSignature) return;
+  lastGuestSignature = sig;
+  const oldDet = list.querySelector('.detail');
+  let savedGAmount = '10', savedGBanAmount = '60';
+  if (oldDet) {
+    const ga = oldDet.querySelector('#gDetAmount'); if (ga && ga.value !== '') savedGAmount = ga.value;
+    const ba = oldDet.querySelector('#gBanAmount'); if (ba && ba.value !== '') savedGBanAmount = ba.value;
+  }
+  list.innerHTML = '';
+  for (const a of guestAccs) {
     const banned = isBanned(a);
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span><span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span> <b>${esc(a.nick)}</b> ⭐ ${a.points || 0}
-      <span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}">${banned ? '🚫 бан' : esc(lastSeenText(a))}</span></span>`;
-    const row = document.createElement('div'); row.className = 'row';
-    const bb = document.createElement('button'); bb.className = 'danger'; bb.textContent = '🚫 Бан 60 мин';
-    bb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    bb.onclick = async () => {
-      const until = new Date(Date.now() + 3600000).toISOString();
-      const { error } = await supabase.from('accounts').update({ banned_until: until, kick_flag: true }).eq('id', a.id);
-      if (error) { toast('Не получилось: ' + error.message); return; }
-      await supabase.from('notifications').insert({ recipient_id: a.user_id, text: '🚫 Владелец заблокировал вход на 1 час.' });
-      toast('Гость забанен на час');
-      loadGuests(true);
-    };
-    const db = document.createElement('button'); db.className = 'danger'; db.textContent = '🗑 Удалить';
-    db.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    db.onclick = async () => {
-      if (!confirm('Удалить гостя «' + a.nick + '»?')) return;
-      const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
-      if (error) { toast('Не получилось: ' + error.message); return; }
-      toast('Гость удалён');
-      await loadAccounts(); loadGuests(true);
-    };
-    row.appendChild(bb); row.appendChild(db); d.appendChild(row); al.appendChild(d);
-  });
+    const d = document.createElement('div');
+    d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedGuestId ? ' selected' : '');
+    d.innerHTML = `
+      <span class="usercell">
+        <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
+        <span>
+          <b>${esc(a.nick)}</b> <span class="small">(гость)</span>
+          &nbsp;<span class="small">⭐ ${a.points || 0}</span>
+          <br><span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}" style="margin-left:0">
+            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
+          </span>
+        </span>
+      </span>
+      <span class="small">${a.id === selectedGuestId ? '▲ свернуть' : '▼ открыть'}</span>`;
+    d.onclick = () => { selectedGuestId = (selectedGuestId === a.id) ? null : a.id; lastGuestSignature = ''; renderGuestList(false); };
+    list.appendChild(d);
+
+    if (a.id === selectedGuestId) {
+      const online = isOnline(a);
+      const det = document.createElement('div');
+      det.className = 'detail';
+      det.innerHTML = `
+        <div class="row" style="margin-bottom:4px"><span><b>Ник:</b> ${esc(a.nick)}</span></div>
+        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b>
+          <span class="pill ${banned ? 'ban' : (online ? 'on' : 'off')}">
+            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
+          </span></span></div>
+        <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
+        <div class="small" style="margin:10px 0 2px"><b>Изменить баллы:</b></div>
+        <div class="row"><input type="number" min="0" value="${esc(savedGAmount)}" id="gDetAmount" style="max-width:110px"></div>
+        <div class="row">
+          <button id="gDetAdd">＋ Начислить</button>
+          <button id="gDetSub" class="danger">－ Списать</button>
+          <button id="gDetSet" class="gray">＝ Установить</button>
+        </div>
+        <div class="small" style="margin:10px 0 2px"><b>Блокировка и удаление:</b></div>
+        <div class="row">
+          <input type="number" min="1" value="${esc(savedGBanAmount)}" id="gBanAmount" style="max-width:90px">
+          <span class="small">минут</span>
+          <button id="gDetBan" class="danger">🚫 Запретить вход</button>
+          <button id="gDetUnban" class="gray">Снять бан</button>
+        </div>
+        <div class="row"><button id="gDetDel" class="danger">🗑 Удалить гостя</button></div>
+        <div id="gDetMsg" class="ok"></div>`;
+      list.appendChild(det);
+      det.querySelector('#gDetAdd').onclick = () => changeGuestPoints(a, 'add');
+      det.querySelector('#gDetSub').onclick = () => changeGuestPoints(a, 'sub');
+      det.querySelector('#gDetSet').onclick = () => changeGuestPoints(a, 'set');
+      det.querySelector('#gDetBan').onclick = () => banGuest(a);
+      det.querySelector('#gDetUnban').onclick = () => unbanMember(a);
+      det.querySelector('#gDetDel').onclick = () => deleteGuest(a);
+    }
+  }
+  if (!guestAccs.length) list.innerHTML = '<div class="small">Гостей пока нет</div>';
 }
 
-// ===== МАГАЗИН =====
-async function openShop() {
-  $('shopModal').classList.remove('hidden');
-  $('shopAdminBlock').classList.toggle('hidden', !isAdmin);
-  $('pendingBlock').classList.toggle('hidden', !isAdmin);
-  await loadShop();
-  if (isAdmin) await loadPendingPurchases(true);
+async function changeGuestPoints(a, mode) {
+  const det = $('guestList').querySelector('.detail');
+  if (!det) return;
+  const amt = parseInt(det.querySelector('#gDetAmount').value, 10);
+  const msg = det.querySelector('#gDetMsg');
+  msg.className = 'ok'; msg.textContent = '';
+  if (isNaN(amt) || amt < 0) { msg.className = 'err'; msg.textContent = 'Укажи число 0 или больше'; return; }
+  let newVal;
+  if (mode === 'set') newVal = amt;
+  else if (mode === 'add') newVal = (a.points || 0) + amt;
+  else newVal = Math.max(0, (a.points || 0) - amt);
+  const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', a.id);
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  let word;
+  if (mode === 'set') word = `Ваш баланс изменён на ${newVal} балл(ов).`;
+  else if (mode === 'add') word = `Вам начислено ${amt} балл(ов). Теперь у вас ${newVal}.`;
+  else word = `У вас списано ${amt} балл(ов). Теперь у вас ${newVal}.`;
+  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: word });
+  toast('Готово: у гостя ' + a.nick + ' теперь ' + newVal + ' баллов');
+  a.points = newVal;
+  lastGuestSignature = '';
+  renderGuestList(false);
+  loadAudit();
 }
-function closeShop() { $('shopModal').classList.add('hidden'); }
 
+async function banGuest(a) {
+  const det = $('guestList').querySelector('.detail');
+  if (!det) return;
+  const amt = parseInt(det.querySelector('#gBanAmount').value, 10);
+  const msg = det.querySelector('#gDetMsg');
+  msg.className = 'ok'; msg.textContent = '';
+  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
+  const until = new Date(Date.now() + amt * 60000).toISOString();
+  const { error } = await supabase.from('accounts').update({ banned_until: until, kick_flag: true }).eq('id', a.id);
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + amt + ' мин.';
+  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: '🚫 Владелец заблокировал вход на ' + amt + ' мин.' });
+  a.banned_until = until;
+  lastGuestSignature = '';
+  renderGuestList(false);
+  loadAudit();
+}
+
+async function deleteGuest(a) {
+  if (!confirm('Удалить гостя «' + a.nick + '»? Он больше не сможет войти.')) return;
+  const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
+  if (error) { toast('Не получилось: ' + error.message); return; }
+  if (selectedGuestId === a.id) selectedGuestId = null;
+  toast('Гость удалён');
+  lastGuestSignature = '';
+  await loadAccounts();
+  await loadGuestsData(true);
+  loadAudit();
+}
+
+// ===== МАГАЗИН (отдельная страница) =====
 async function loadShop() {
   const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
   if (error) { $('productList').innerHTML = '<div class="small">Ошибка: ' + esc(error.message) + '</div>'; return; }
@@ -1361,10 +1457,13 @@ function renderProducts() {
       `<div class="small">${esc(p.description || '')}</div>` +
       `<div>Цена: <span class="prodprice">${p.price}</span> балл(ов) · В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}</div>`;
     const row = document.createElement('div'); row.className = 'row';
+    const soldOut = p.quantity <= 0;
     const b1 = document.createElement('button'); b1.className = 'warn'; b1.textContent = '💳 Оплатить баллами King Room';
-    b1.style.cssText = 'margin-top:0'; b1.onclick = () => startBuy(p, 'kingroom');
+    b1.style.cssText = 'margin-top:0'; b1.disabled = soldOut;
+    b1.onclick = () => startBuy(p, 'kingroom');
     const b2 = document.createElement('button'); b2.className = 'okbtn'; b2.textContent = '💳 Оплатить баллами DEDSECK';
-    b2.style.cssText = 'margin-top:0'; b2.onclick = () => startBuy(p, 'dedseck');
+    b2.style.cssText = 'margin-top:0'; b2.disabled = soldOut;
+    b2.onclick = () => startBuy(p, 'dedseck');
     row.appendChild(b1); row.appendChild(b2); d.appendChild(row);
     if (isAdmin) {
       const del = document.createElement('button'); del.className = 'gray'; del.textContent = '🗑 Убрать товар';
@@ -1528,7 +1627,6 @@ async function loadHistory() {
   }).join('') || '<div class="small">Покупок пока нет</div>';
 }
 
-// ===== УВЕДОМЛЕНИЯ И ОПРОС =====
 function loadSeen() { try { seen = new Set(JSON.parse(localStorage.getItem('seen_' + (me ? me.email : '')) || '[]')); } catch (e) { seen = new Set(); } }
 function saveSeen() { localStorage.setItem('seen_' + (me ? me.email : ''), JSON.stringify([...seen])); }
 
@@ -1568,19 +1666,22 @@ async function poll() {
   }
   updateLastSeen();
 
-  if (isAdmin && membersOpen) {
-    const { data: freshAccounts } = await supabase.from('accounts').select('*');
-    if (freshAccounts) {
-      guestAccs = freshAccounts.filter(a => !a.deleted && a.is_guest);
-      accounts = freshAccounts.filter(a => !a.deleted && !a.is_guest);
-      if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
-      renderAccountList(false);
-      fillSendSelect();
+  if (isAdmin) {
+    if (membersOpen) {
+      const { data: freshAccounts } = await supabase.from('accounts').select('*');
+      if (freshAccounts) {
+        guestAccs = freshAccounts.filter(a => !a.deleted && a.is_guest);
+        accounts = freshAccounts.filter(a => !a.deleted && !a.is_guest);
+        if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
+        renderAccountList(false);
+        fillSendSelect();
+      }
+      await loadWithdrawals(false);
+      loadAudit();
     }
-    await loadWithdrawals(false);
-    loadAudit();
-    await loadGuests(false);
-    await loadPendingPurchases(false);
+    if (guestsOpen) await loadGuestsData(false);
+    if (curPage === 'shop') await loadPendingPurchases(false);
+    if (curPage === 'shop') loadShop();
   }
 
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
