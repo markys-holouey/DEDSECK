@@ -49,12 +49,13 @@
   .err { color:var(--err); margin-top:10px; font-size:14px; }
   .err.shake { animation:shake .3s ease; }
   .ok { color:var(--ok); margin-top:10px; font-size:14px; }
-  .topbar { display:flex; align-items:center; gap:10px; padding:12px 18px; background:rgba(26,16,44,.9);
+  .topbar { display:flex; align-items:center; gap:8px; padding:12px 18px; background:rgba(26,16,44,.9);
     border-bottom:1px solid var(--line); flex-wrap:wrap; position:sticky; top:0; z-index:10; backdrop-filter:blur(10px);
     box-shadow:0 2px 20px rgba(168,85,247,.15); }
   .topbar .brand { margin-right:auto; font-weight:700; letter-spacing:3px; font-size:17px;
     background:linear-gradient(90deg,#c084fc,#e879f9); -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 0 8px rgba(192,132,252,.5)); }
+  .topbar button { padding:8px 12px; font-size:14px; margin-top:0; }
   .wrap { max-width:680px; margin:0 auto; padding:18px; }
   .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px;
     box-shadow:0 0 22px rgba(168,85,247,.14), inset 0 0 30px rgba(124,58,237,.06); backdrop-filter:blur(10px); }
@@ -80,16 +81,19 @@
   .pill.on { background:rgba(74,222,128,.14); color:var(--ok); }
   .pill.off { background:rgba(165,140,201,.12); color:var(--muted); }
   .pill.ban { background:rgba(251,113,133,.14); color:var(--err); }
+  .note { background:rgba(168,85,247,.12); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; }
   .locktext { text-align:center; color:var(--warn); font-size:15px; margin:8px 0 4px; }
   .alarmtext { text-align:center; color:var(--err); font-size:15px; margin:8px 0 4px; }
   .overlay { position:fixed; inset:0; background:rgba(8,4,18,.82); display:flex; align-items:center; justify-content:center; z-index:50; backdrop-filter:blur(5px); padding:14px; }
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:linear-gradient(135deg,var(--accent),var(--accent2));
     padding:12px 20px; border-radius:12px; display:none; box-shadow:0 0 24px rgba(168,85,247,.55); z-index:99; max-width:90vw; }
   .hidden { display:none !important; }
-  #dropZone { border:1px dashed rgba(192,132,252,.5); border-radius:10px; padding:14px; text-align:center; color:var(--muted);
+  #dropZone, #dropZone3 { border:1px dashed rgba(192,132,252,.5); border-radius:10px; padding:14px; text-align:center; color:var(--muted);
     cursor:pointer; font-size:14px; transition:border-color .2s, background .2s, box-shadow .2s; }
-  #dropZone.dragover { border-color:var(--accent); background:rgba(168,85,247,.1); box-shadow:0 0 16px rgba(168,85,247,.3); }
-  .prod { background:rgba(15,8,28,.65); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:10px; box-shadow:0 0 14px rgba(168,85,247,.1); }
+  #dropZone.dragover, #dropZone3.dragover { border-color:var(--accent); background:rgba(168,85,247,.1); box-shadow:0 0 16px rgba(168,85,247,.3); }
+  .prod { background:rgba(15,8,28,.65); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:10px;
+    box-shadow:0 0 14px rgba(168,85,247,.1); cursor:pointer; transition:border-color .2s, box-shadow .2s; }
+  .prod:hover { border-color:var(--accent); box-shadow:0 0 20px rgba(168,85,247,.3); }
   .prod .pname { font-weight:700; font-size:16px; text-shadow:0 0 8px rgba(192,132,252,.4); }
   .prodimg { width:100%; max-width:340px; border-radius:10px; margin:8px 0; box-shadow:0 0 16px rgba(168,85,247,.3); display:block; }
   .prodprice { color:#e879f9; font-weight:700; }
@@ -109,7 +113,6 @@
         <input id="pass" type="password" placeholder="пароль от ника" autocomplete="new-password">
         <button id="btnLogin" style="width:100%">Войти</button>
         <div id="authMsg" class="err"></div>
-        <div class="small" style="text-align:center;margin-top:12px">Аккаунты участников выдаёт владелец. Гость может зарегистрироваться сам.</div>
       </div>
       <div id="lockBlock" class="hidden">
         <div class="locktext">🔒 Сайт заблокирован владельцем.<br>Для активации введите код:</div>
@@ -124,6 +127,7 @@
         <div id="alarmMsg" class="err"></div>
       </div>
       <button id="btnShopAuth" class="gray" style="width:100%">🛒 Магазин</button>
+      <button id="btnEnterAsAuth" class="gray" style="width:100%">🔀 Войти как…</button>
       <button id="btnGuestReg" class="gray" style="width:100%">👤 Регистрация гостя</button>
     </div>
   </div>
@@ -135,11 +139,12 @@
     <span id="whoami" class="small"></span>
     <button id="btnBack" class="gray hidden">← Назад</button>
     <button id="btnShopPage" class="gray">🛒 Магазин</button>
+    <button id="btnEnterAs" class="gray">🔀 Войти как</button>
     <button id="btnNotifView" class="gray">🔔 Уведомления</button>
     <button id="btnLogout" class="gray">Выйти</button>
   </div>
 
-  <!-- ГЛАВНАЯ СТРАНИЦА -->
+  <!-- ГЛАВНАЯ -->
   <div id="pageMain" class="wrap">
     <div class="panel anim-in">
       <h3>👤 Кабинет</h3>
@@ -163,10 +168,8 @@
       </div>
       <div id="guestReqSection" class="hidden">
         <hr class="divider">
-        <div class="small" style="margin-bottom:6px">🎁 Вы гость: запросите баллы у владельца, чтобы покупать в магазине.</div>
-        <div style="background:rgba(168,85,247,.12);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">
-          💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b>
-        </div>
+        <div class="small" style="margin-bottom:6px">🎁 Вы гость: запросите баллы у владельца.</div>
+        <div class="note">💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b></div>
         <div class="row">
           <input id="grAmount" type="number" min="1" placeholder="Сколько баллов нужно">
           <button id="btnGuestReq">Запросить</button>
@@ -223,6 +226,17 @@
         <div class="small" style="margin-bottom:4px"><b>Зарегистрированные гости:</b> нажми на гостя — баллы, бан, удаление.</div>
         <button id="btnGuestsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
         <div id="guestList"></div>
+      </div>
+
+      <div class="panel anim-in">
+        <button id="btnBuyReqs" style="width:100%;font-size:16px;padding:14px">🛒 Хотят купить</button>
+      </div>
+
+      <div id="buyReqsBlock" class="panel hidden">
+        <h3>🛒 Хотят купить</h3>
+        <div class="small" style="margin-bottom:4px">Заявки на покупку: имя, фамилия, телефон, способ оплаты.</div>
+        <button id="btnBuyReqsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
+        <div id="buyReqList"></div>
       </div>
 
       <div class="panel anim-in">
@@ -302,19 +316,39 @@
     </div>
   </div>
 
-  <!-- СТРАНИЦА МАГАЗИНА -->
+  <!-- СТРАНИЦА ГОСТЯ -->
+  <div id="pageGuest" class="wrap hidden">
+    <div class="panel anim-in">
+      <h3>👤 Кабинет гостя</h3>
+      <div id="guestLoginBlock">
+        <div class="small" style="margin-bottom:8px">Войдите своим ником и паролем гостя или зарегистрируйтесь.</div>
+        <label>Ник</label>
+        <input id="geNick" autocomplete="off">
+        <label>Пароль</label>
+        <input id="gePass" type="password" autocomplete="new-password">
+        <button id="btnGuestLogin" style="width:100%">Войти как гость</button>
+        <div id="geMsg" class="err"></div>
+        <button id="btnGuestRegOpen" class="gray" style="width:100%">👤 Регистрация гостя</button>
+      </div>
+      <div id="guestCabinet" class="hidden">
+        <div class="small">Мой баланс</div>
+        <div class="points" id="guestPoints">0</div>
+        <div class="note">💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b></div>
+        <button id="btnGuestTopup" style="width:100%">💰 Пополнить</button>
+        <div id="guestTopMsg" class="ok"></div>
+        <hr class="divider">
+        <div class="small" style="margin-bottom:6px">🧾 История покупок</div>
+        <div id="guestHistList"></div>
+        <button id="btnGuestToShop" class="gray" style="width:100%">🛒 В магазин</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МАГАЗИН -->
   <div id="pageShop" class="wrap hidden">
     <div class="panel anim-in">
       <h3>🛒 Магазин DEDSECK</h3>
-      <div class="small">Выбери товар и способ оплаты: рубли, баллы DEDSECK или баллы гостя. Покупка подтверждается владельцем.</div>
-    </div>
-
-    <div id="pendingBlock" class="panel hidden">
-      <h3>💰 Заявки на покупку</h3>
-      <div id="pendingList"></div>
-      <hr class="divider">
-      <div class="small" style="margin-bottom:4px"><b>🧾 Все покупки:</b></div>
-      <div id="allPurchases"></div>
+      <div class="small">Все товары и цены. Нажми на товар — откроется всё о нём и кнопки покупки.</div>
     </div>
 
     <div class="panel anim-in">
@@ -325,18 +359,29 @@
   </div>
 </div>
 
-<!-- Покупка -->
+<!-- Карточка товара / покупка -->
 <div id="buyModal" class="overlay hidden">
-  <div class="card" style="width:380px">
-    <h3 style="margin-bottom:6px" id="buyTitle">Покупка</h3>
-    <div id="buyInfo" class="small" style="margin-bottom:6px"></div>
+  <div class="card" style="width:400px;max-height:92vh;overflow:auto">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px">
+      <h3 style="margin:0" id="buyTitle">Покупка</h3>
+      <button id="btnBuyCloseX" class="gray" style="padding:6px 12px">✕</button>
+    </div>
+    <div id="buyPhotoWrap"></div>
+    <div id="buyDesc" class="small" style="margin-bottom:6px"></div>
+    <div id="buyPrices"></div>
+    <div class="small" id="buyStock" style="margin:6px 0"></div>
+    <div id="buyButtons"></div>
     <div id="buyNameBlock" class="hidden">
+      <hr class="divider">
       <label>Имя</label>
       <input id="buyName" placeholder="Имя">
       <label>Фамилия</label>
       <input id="buySurname" placeholder="Фамилия">
+      <label>Номер телефона</label>
+      <input id="buyPhone" inputmode="tel" placeholder="+7 ...">
     </div>
     <div id="buyLoginBlock" class="hidden">
+      <hr class="divider">
       <div class="small" style="margin:8px 0 4px">Войдите в аккаунт, чтобы платить баллами:</div>
       <label>Ник</label>
       <input id="mNick" autocomplete="off">
@@ -345,9 +390,23 @@
       <button id="btnMiniLogin" style="width:100%">Войти и продолжить</button>
       <div id="miniMsg" class="err"></div>
     </div>
-    <button id="btnBuyConfirm" style="width:100%">Отправить заявку</button>
-    <button id="btnBuyCancel" class="gray" style="width:100%">Отмена</button>
+    <button id="btnBuyConfirm" class="hidden" style="width:100%">Отправить заявку</button>
+    <button id="btnBuyCancel" class="gray" style="width:100%">Закрыть</button>
     <div id="buyMsg" class="ok"></div>
+  </div>
+</div>
+
+<!-- Войти как -->
+<div id="enterAsModal" class="overlay hidden">
+  <div class="card" style="width:340px">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px">
+      <h3 style="margin:0">🔀 Войти как</h3>
+      <button id="btnEnterAsClose" class="gray" style="padding:6px 12px">✕</button>
+    </div>
+    <button id="btnAsGuest" style="width:100%">👤 Как гость</button>
+    <div class="small" style="text-align:center;margin:4px 0">Баланс, история покупок, пополнение.<br>1 рубль = 10 баллов.</div>
+    <button id="btnAsEmployee" class="gray" style="width:100%">💼 Как сотрудник</button>
+    <div class="small" style="text-align:center;margin:4px 0">Вход по логину и паролю —<br>попадёшь в магазин как из аккаунта.</div>
   </div>
 </div>
 
@@ -411,12 +470,12 @@ let pollTimer = null, pollLast = new Date().toISOString();
 let notifCache = [], seen = new Set(), accounts = [], guestAccs = [];
 let wdCache = [], wdSeen = new Set(), grSeen = new Set();
 let unreadCount = 0, selectedId = null, selectedGuestId = null;
-let membersOpen = false, guestsOpen = false, addProductOpen = false;
+let membersOpen = false, guestsOpen = false, addProductOpen = false, buyReqsOpen = false;
 let stopped = false, serverOff = false, timerArmed = false;
 let alarmOn = false, devWatchOn = false, devReported = false;
 let lastListSignature = '', lastGuestSignature = '', rtChannel = null;
 let shopCache = [], prodMap = {}, puSeen = new Set();
-let pendingPhoto = null, currentBuy = null, curPage = 'main';
+let pendingPhoto = null, currentBuy = null, curPage = 'main', pendingPage = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -433,17 +492,34 @@ $('btnShopPage').onclick = () => showPage('shop');
 $('btnBack').onclick = () => showPage('main');
 $('btnShopReload').onclick = loadShop;
 $('btnBuyCancel').onclick = closeBuy;
+$('btnBuyCloseX').onclick = closeBuy;
 $('btnNotifView').onclick = () => { $('notifModal').classList.remove('hidden'); renderNotifs(); };
 $('btnNotifClose').onclick = () => $('notifModal').classList.add('hidden');
 $('notifModal').addEventListener('click', e => { if (e.target === $('notifModal')) $('notifModal').classList.add('hidden'); });
 $('btnGuestReg').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
+$('btnGuestRegOpen').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
 $('btnGuestRegClose').onclick = () => $('guestRegModal').classList.add('hidden');
 $('guestRegModal').addEventListener('click', e => { if (e.target === $('guestRegModal')) $('guestRegModal').classList.add('hidden'); });
-$('btnAddProductOpen').onclick = () => {
-  addProductOpen = !addProductOpen;
-  $('addProductBlock').classList.toggle('hidden', !addProductOpen);
-  $('btnAddProductOpen').textContent = addProductOpen ? '📦 Добавить товар ▲' : '📦 Добавить товар';
+$('btnEnterAsAuth').onclick = () => $('enterAsModal').classList.remove('hidden');
+$('btnEnterAs').onclick = () => $('enterAsModal').classList.remove('hidden');
+$('btnEnterAsClose').onclick = () => $('enterAsModal').classList.add('hidden');
+$('enterAsModal').addEventListener('click', e => { if (e.target === $('enterAsModal')) $('enterAsModal').classList.add('hidden'); });
+$('btnAsGuest').onclick = () => { $('enterAsModal').classList.add('hidden'); showPage('guest'); };
+$('btnAsEmployee').onclick = async () => {
+  $('enterAsModal').classList.add('hidden');
+  if (me && !isGuestAcc) { showPage('shop'); return; }
+  pendingPage = 'shop';
+  if (!me) {
+    $('authScreen').classList.remove('hidden');
+    $('app').classList.add('hidden');
+    $('nick').focus();
+    toast('Введите логин и пароль сотрудника');
+  }
 };
+$('btnGuestLogin').onclick = guestLogin;
+$('gePass').addEventListener('keydown', e => { if (e.key === 'Enter') guestLogin(); });
+$('btnGuestToShop').onclick = () => showPage('shop');
+$('btnGuestTopup').onclick = guestTopup;
 
 async function getSetting(key) {
   try {
@@ -625,6 +701,17 @@ async function maybeExtraPin(email) {
   return await showPinOverlay(new Date(dl).getTime());
 }
 
+async function trySignIn(nick, pass) {
+  let email = nick + '@mysait.local', isGuest = false;
+  const r1 = await supabase.auth.signInWithPassword({ email, password: pass });
+  if (r1.error) {
+    const r2 = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
+    if (r2.error) return { error: r1.error };
+    email = nick + '@guest.local'; isGuest = true;
+  }
+  return { email, isGuest };
+}
+
 async function login() {
   const nick = $('nick').value.trim().toLowerCase();
   const pass = $('pass').value;
@@ -634,18 +721,14 @@ async function login() {
   if (await isServerOff()) { serverOff = true; renderAuthScreen(); return; }
   if (alarmOn || await isAlarm()) { alarmOn = true; renderAuthScreen(); return; }
 
-  let authErr = null, email = nick + '@mysait.local';
-  const r1 = await supabase.auth.signInWithPassword({ email, password: pass });
-  if (r1.error) {
-    const r2 = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
-    if (r2.error) authErr = r1.error; else email = nick + '@guest.local';
-  }
-  if (authErr) {
-    m.textContent = /invalid/i.test(authErr.message) ? 'Неверный ник или пароль' : (authErr.message || 'Не удалось войти');
+  const res = await trySignIn(nick, pass);
+  if (res.error) {
+    m.textContent = /invalid/i.test(res.error.message) ? 'Неверный ник или пароль' : (res.error.message || 'Не удалось войти');
     void m.offsetWidth; m.classList.add('shake');
     await reportFail('login');
     return;
   }
+  pendingPage = res.isGuest ? 'guest' : null;
   const { data: u } = await supabase.auth.getUser();
   const { data: rows } = await supabase.from('accounts').select('*').eq('user_id', u.user.id);
   const row = rows && rows[0];
@@ -695,7 +778,7 @@ async function enterApp(nick, row) {
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (isGuestAcc ? ' (гость)' : ''));
-  $('wdSection').classList.toggle('hidden', isAdmin);
+  $('wdSection').classList.toggle('hidden', isAdmin || isGuestAcc);
   $('guestReqSection').classList.toggle('hidden', isAdmin || !isGuestAcc);
   if (isAdmin) {
     $('adminSection').classList.remove('hidden');
@@ -712,9 +795,11 @@ async function enterApp(nick, row) {
 
   await initNotifications();
   await loadRecords();
-  await loadHistory();
+  await loadHistory('histList');
   await refreshPoints();
-  showPage('main');
+  updateGuestPage();
+  showPage(pendingPage || 'main');
+  pendingPage = null;
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, 10000);
   subscribeRealtime();
@@ -725,12 +810,11 @@ function showPage(page) {
   curPage = page;
   $('pageMain').classList.toggle('hidden', page !== 'main');
   $('pageShop').classList.toggle('hidden', page !== 'shop');
+  $('pageGuest').classList.toggle('hidden', page !== 'guest');
   $('btnBack').classList.toggle('hidden', page === 'main');
   $('btnShopPage').classList.toggle('hidden', page !== 'main');
-  if (page === 'shop') {
-    loadShop();
-    if (isAdmin) loadPendingPurchases(true);
-  }
+  if (page === 'shop') { loadShop(); if (isAdmin) loadPendingPurchases(true); }
+  if (page === 'guest') updateGuestPage();
   window.scrollTo(0, 0);
 }
 
@@ -745,6 +829,7 @@ async function kickSelf(atLogin, message) {
   clearInterval(pollTimer);
   if (me) await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
   await supabase.auth.signOut();
+  me = null; isGuestAcc = false; isAdmin = false;
   if (atLogin) {
     renderAuthScreen();
     const m = $('authMsg');
@@ -833,6 +918,14 @@ $('btnGuests').onclick = () => {
   if (guestsOpen) { lastGuestSignature = ''; loadGuestsData(true); }
 };
 
+$('btnBuyReqs').onclick = () => {
+  buyReqsOpen = !buyReqsOpen;
+  $('buyReqsBlock').classList.toggle('hidden', !buyReqsOpen);
+  $('btnBuyReqs').textContent = buyReqsOpen ? '🛒 Хотят купить ▲' : '🛒 Хотят купить';
+  if (buyReqsOpen) loadPendingPurchases(true);
+};
+
+$('btnBuyReqsReload').onclick = () => loadPendingPurchases(true);
 $('btnGuestsReload').onclick = () => { lastGuestSignature = ''; loadGuestsData(true); };
 $('btnAudit').onclick = loadAudit;
 $('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); };
@@ -845,6 +938,7 @@ async function updateLastSeen() {
 async function refreshPoints() {
   const { data } = await supabase.from('accounts').select('points').eq('user_id', me.id).maybeSingle();
   $('pointsBig').textContent = data ? (data.points || 0) : 0;
+  $('guestPoints').textContent = data ? (data.points || 0) : 0;
 }
 
 async function loadRecords() {
@@ -1261,8 +1355,8 @@ $('btnGuestCreate').onclick = async () => {
   await supabase.auth.signOut();
   msg.textContent = 'Готово! Аккаунт создан — теперь войди своим ником и паролем';
   $('gNick').value = ''; $('gPass').value = '';
-  toast('👤 Гостевой аккаунт создан. Войдите через форму входа');
-  setTimeout(() => $('guestRegModal').classList.add('hidden'), 1800);
+  toast('👤 Гостевой аккаунт создан. Войдите через «Войти как гость»');
+  setTimeout(() => { $('guestRegModal').classList.add('hidden'); showPage('guest'); }, 1600);
 };
 
 $('btnGuestReq').onclick = async () => {
@@ -1275,6 +1369,54 @@ $('btnGuestReq').onclick = async () => {
   $('grAmount').value = '';
   toast('🎁 Запрос на баллы отправлен');
 };
+
+// ===== СТРАНИЦА ГОСТЯ =====
+async function guestLogin() {
+  const nick = $('geNick').value.trim().toLowerCase(), pass = $('gePass').value;
+  const m = $('geMsg'); m.textContent = '';
+  if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; return; }
+  const { error } = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
+  if (error) { m.textContent = 'Неверный ник или пароль (или это не гостевой аккаунт)'; return; }
+  const { data: u } = await supabase.auth.getUser();
+  me = u.user; myNick = nick; isAdmin = false;
+  const { data: row } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
+  if (!row || row.deleted || (row.banned_until && new Date(row.banned_until).getTime() > Date.now())) {
+    await supabase.auth.signOut(); me = null;
+    m.textContent = 'Аккаунт недоступен (удалён или заблокирован)';
+    return;
+  }
+  isGuestAcc = !!row.is_guest;
+  await clearMyKickFlag(); updateLastSeen();
+  $('whoami').textContent = myNick + (isGuestAcc ? ' (гость)' : '');
+  await initNotifications();
+  await refreshPoints();
+  updateGuestPage();
+  subscribeRealtime();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(poll, 10000);
+  toast('Вы вошли как гость');
+}
+
+function updateGuestPage() {
+  const logged = !!me;
+  $('guestLoginBlock').classList.toggle('hidden', logged);
+  $('guestCabinet').classList.toggle('hidden', !logged);
+  if (logged) {
+    refreshPoints();
+    loadHistory('guestHistList');
+  }
+}
+
+async function guestTopup() {
+  const msg = $('guestTopMsg'); msg.className = 'ok'; msg.textContent = '';
+  const rub = parseFloat(prompt('💡 1 рубль = 10 баллов.\nСколько рублей вносите?'));
+  if (isNaN(rub) || rub <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
+  const pts = Math.round(rub * 10);
+  const { error } = await supabase.from('guest_requests').insert({ user_id: me.id, amount: pts });
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  msg.textContent = 'Заявка на ' + pts + ' балл(ов) (' + rub + ' руб.) отправлена владельцу';
+  toast('💰 Заявка на пополнение отправлена');
+}
 
 // ===== Гости: раскрывающийся список =====
 async function loadGuestsData(silent) {
@@ -1304,7 +1446,7 @@ function renderGuestReqs(reqs) {
   ql.innerHTML = reqs.length ? '' : '<div class="small">Запросов на баллы пока нет</div>';
   reqs.forEach(r => {
     const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span>${esc(r.nick || '?')} просит ${r.amount} балл(ов) · <span class="small">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></span>`;
+    d.innerHTML = `<span>${esc(r.nick || '?')} просит ${r.amount} балл(ов) (≈${(r.amount/10).toFixed(0)} руб.) · <span class="small">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></span>`;
     const row = document.createElement('div'); row.className = 'row';
     const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Начислить';
     okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
@@ -1460,6 +1602,14 @@ async function loadShop() {
   renderProducts();
 }
 
+function pricesText(p) {
+  const parts = [];
+  if (p.price_rub) parts.push('₽ ' + p.price_rub);
+  parts.push('DEDSECK: ' + p.price + ' балл(ов)');
+  parts.push('гость: ' + (p.guest_price ?? p.price) + ' балл(ов)');
+  return parts.join(' · ');
+}
+
 function renderProducts() {
   const l = $('productList');
   if (!shopCache.length) { l.innerHTML = '<div class="small">Товаров пока нет</div>'; return; }
@@ -1467,43 +1617,125 @@ function renderProducts() {
   for (const p of shopCache) {
     const d = document.createElement('div');
     d.className = 'prod';
-    const prices = [
-      p.price_rub ? `₽ ${p.price_rub}` : null,
-      `DEDSECK: ${p.price} балл(ов)`,
-      `гость: ${p.guest_price ?? p.price} балл(ов)`
-    ].filter(Boolean).join(' · ');
+    const soldOut = p.quantity <= 0;
     d.innerHTML = (p.photo ? `<img class="prodimg" src="${p.photo}">` : '') +
       `<div class="pname">${esc(p.title)}</div>` +
       `<div class="small">${esc(p.description || '')}</div>` +
-      `<div>Цена: <span class="prodprice">${prices}</span></div>` +
-      `<div class="small">В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}</div>`;
-    const row = document.createElement('div'); row.className = 'row';
-    const soldOut = p.quantity <= 0;
-
-    const bRub = document.createElement('button'); bRub.className = 'warn'; bRub.textContent = '💳 Купить за рубли';
-    bRub.style.cssText = 'margin-top:0'; bRub.disabled = soldOut;
-    bRub.onclick = () => startBuy(p, 'kingroom');
-
-    const bDed = document.createElement('button'); bDed.className = 'okbtn'; bDed.textContent = '💳 Оплатить баллами DEDSECK';
-    bDed.style.cssText = 'margin-top:0'; bDed.disabled = soldOut || !me || isGuestAcc;
-    bDed.onclick = () => startBuy(p, 'dedseck');
-
-    const bGuest = document.createElement('button'); bGuest.className = 'okbtn'; bGuest.textContent = '💳 Оплатить баллами гостя';
-    bGuest.style.cssText = 'margin-top:0'; bGuest.disabled = soldOut || !me || !isGuestAcc;
-    bGuest.onclick = () => startBuy(p, 'guest');
-
-    row.appendChild(bRub); row.appendChild(bDed); row.appendChild(bGuest);
-    d.appendChild(row);
-    if (isAdmin) {
-      const del = document.createElement('button'); del.className = 'gray'; del.textContent = '🗑 Убрать товар';
-      del.style.cssText = 'margin-top:0';
-      del.onclick = async () => { await supabase.from('products').delete().eq('id', p.id); loadShop(); };
-      d.appendChild(del);
-    }
+      `<div>Цена: <span class="prodprice">${pricesText(p)}</span></div>` +
+      `<div class="small">В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}${soldOut ? ' · <span style="color:var(--err)">нет в наличии</span>' : ''}</div>`;
+    d.onclick = () => openBuy(p);
     l.appendChild(d);
   }
 }
 
+function priceFor(p, method) {
+  if (method === 'guest') return p.guest_price ?? p.price;
+  return p.price;
+}
+
+function openBuy(p) {
+  currentBuy = { product: p, method: null };
+  $('buyModal').classList.remove('hidden');
+  $('buyTitle').textContent = '🛒 ' + p.title;
+  $('buyPhotoWrap').innerHTML = p.photo ? `<img class="prodimg" src="${p.photo}">` : '';
+  $('buyDesc').textContent = p.description || '';
+  $('buyPrices').innerHTML = '<div>Цена: <span class="prodprice">' + pricesText(p) + '</span></div>';
+  const soldOut = p.quantity <= 0;
+  $('buyStock').textContent = 'В наличии: ' + p.quantity + ' · Куплено: ' + (p.sold_count || 0) + (soldOut ? ' · товара нет в наличии' : '');
+  $('buyMsg').textContent = '';
+  $('buyNameBlock').classList.add('hidden');
+  $('buyLoginBlock').classList.add('hidden');
+  $('btnBuyConfirm').classList.add('hidden');
+
+  const bb = $('buyButtons');
+  bb.innerHTML = '';
+  if (soldOut) { bb.innerHTML = '<div class="small">Товар закончился</div>'; return; }
+
+  const mk = (label, cls, method) => {
+    const b = document.createElement('button');
+    b.textContent = label; b.className = cls; b.style.cssText = 'width:100%';
+    b.onclick = () => chooseMethod(method);
+    bb.appendChild(b);
+  };
+  mk('💳 Купить за рубли' + (p.price_rub ? ' — ₽ ' + p.price_rub : ''), 'warn', 'kingroom');
+  if (me) {
+    if (isGuestAcc) mk('💳 Оплатить баллами гостя — ' + (p.guest_price ?? p.price) + ' балл(ов)', 'okbtn', 'guest');
+    else mk('💳 Оплатить баллами DEDSECK — ' + p.price + ' балл(ов)', 'okbtn', 'dedseck');
+  } else {
+    const hint = document.createElement('div');
+    hint.className = 'small'; hint.style.marginTop = '6px';
+    hint.textContent = 'Баллами платят только вошедшие: используйте «Войти как».';
+    bb.appendChild(hint);
+  }
+}
+
+function chooseMethod(method) {
+  if (!currentBuy) return;
+  currentBuy.method = method;
+  const p = currentBuy.product;
+  const cost = priceFor(p, method);
+  $('buyButtons').innerHTML = '';
+  $('buyTitle').textContent = '🛒 ' + p.title + ' — ' + methodLabel(method);
+  $('buyNameBlock').classList.toggle('hidden', method !== 'kingroom');
+  $('buyLoginBlock').classList.toggle('hidden', method === 'kingroom' || !!me);
+  $('btnBuyConfirm').classList.remove('hidden');
+  $('btnBuyConfirm').textContent = method === 'kingroom'
+    ? 'Отправить заявку (рубли)'
+    : 'Отправить заявку — списать ' + cost + ' балл(ов)';
+  $('buyMsg').textContent = '';
+}
+
+function closeBuy() {
+  currentBuy = null;
+  $('buyModal').classList.add('hidden');
+  $('buyName').value = ''; $('buySurname').value = ''; $('buyPhone').value = '';
+  $('mNick').value = ''; $('mPass').value = '';
+  $('miniMsg').textContent = ''; $('buyMsg').textContent = '';
+}
+
+$('btnBuyConfirm').onclick = async () => {
+  if (!currentBuy || !currentBuy.method) return;
+  const msg = $('buyMsg'); msg.className = 'ok'; msg.textContent = '';
+  const { product: p, method } = currentBuy;
+  let buyerName = null, buyerPhone = null;
+  if (method === 'kingroom') {
+    const n = $('buyName').value.trim(), s = $('buySurname').value.trim(), ph = $('buyPhone').value.trim();
+    if (!n || !s || !ph) { msg.className = 'err'; msg.textContent = 'Впишите имя, фамилию и номер телефона'; void msg.offsetWidth; msg.classList.add('shake'); return; }
+    buyerName = n + ' ' + s; buyerPhone = ph;
+  }
+  if (method !== 'kingroom' && !me) { msg.className = 'err'; msg.textContent = 'Сначала войдите в аккаунт'; return; }
+  if (method === 'guest' && me && !isGuestAcc) { msg.className = 'err'; msg.textContent = 'Баллами гостя платят только гости'; return; }
+  if (method === 'dedseck' && me && isGuestAcc) { msg.className = 'err'; msg.textContent = 'Баллами DEDSECK платят только участники'; return; }
+  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: buyerName, phone: buyerPhone });
+  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
+  msg.textContent = 'Заявка отправлена владельцу — после подтверждения товар ваш';
+  toast('🛒 Заявка на «' + p.title + '» отправлена');
+  if (me) { await refreshPoints(); await loadHistory('histList'); await loadHistory('guestHistList'); }
+  setTimeout(() => { closeBuy(); loadShop(); }, 1200);
+};
+
+$('btnMiniLogin').onclick = async () => {
+  const nick = $('mNick').value.trim().toLowerCase(), pass = $('mPass').value;
+  const m = $('miniMsg'); m.textContent = '';
+  if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; return; }
+  const res = await trySignIn(nick, pass);
+  if (res.error) { m.textContent = 'Неверный ник или пароль'; return; }
+  const { data: u } = await supabase.auth.getUser();
+  me = u.user; myNick = nick; isAdmin = false;
+  const { data: row } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
+  isGuestAcc = !!(row && row.is_guest);
+  await clearMyKickFlag(); updateLastSeen();
+  $('whoami').textContent = myNick + (isGuestAcc ? ' (гость)' : '');
+  $('buyLoginBlock').classList.add('hidden');
+  chooseMethod(currentBuy.method);
+  await refreshPoints();
+  subscribeRealtime();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(poll, 10000);
+  toast('Вход выполнен — можно платить баллами');
+};
+
+// ===== Фото товара =====
 const dz = $('dropZone');
 dz.onclick = () => $('photoInput').click();
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
@@ -1534,6 +1766,12 @@ function handlePhoto(file) {
   img.src = URL.createObjectURL(file);
 }
 
+$('btnAddProductOpen').onclick = () => {
+  addProductOpen = !addProductOpen;
+  $('addProductBlock').classList.toggle('hidden', !addProductOpen);
+  $('btnAddProductOpen').textContent = addProductOpen ? '📦 Добавить товар ▲' : '📦 Добавить товар';
+};
+
 $('btnAddProduct').onclick = async () => {
   const msg = $('addProdMsg'); msg.className = 'ok'; msg.textContent = '';
   const t = $('pTitle').value.trim(), dsc = $('pDesc').value.trim();
@@ -1552,69 +1790,37 @@ $('btnAddProduct').onclick = async () => {
   loadShop();
 };
 
-function priceFor(p, method) {
-  if (method === 'kingroom') return null;
-  if (method === 'guest') return p.guest_price ?? p.price;
-  return p.price;
+// ===== Заявки на покупку =====
+function renderPendingItems(data) {
+  return (data || []).map(x => {
+    const who = esc(x.buyer_name || x.buyer_nick || '?');
+    const ph = x.phone ? ' · 📞 ' + esc(x.phone) : '';
+    return `<div class="item">
+      <span><b>${who}</b> → «${esc(prodMap[x.product_id] || 'товар')}» · ${methodLabel(x.method)}${ph}</span>
+      <span class="row" style="justify-content:flex-end">
+        <button class="okbtn buy-ok" data-id="${x.id}" style="margin-top:0;padding:6px 12px;font-size:13px">✅ Торг завершён</button>
+        <button class="danger buy-no" data-id="${x.id}" style="margin-top:0;padding:6px 12px;font-size:13px">✕ Отклонить торг</button>
+      </span></div>`;
+  }).join('');
 }
 
-function startBuy(p, method) {
-  currentBuy = { product: p, method };
-  $('buyModal').classList.remove('hidden');
-  $('buyTitle').textContent = '🛒 ' + p.title;
-  const cost = priceFor(p, method);
-  $('buyInfo').textContent =
-    (method === 'kingroom' ? 'Цена: ₽ ' + (p.price_rub || 0) : 'Цена: ' + cost + ' балл(ов) (' + methodLabel(method) + ')') +
-    ' · В наличии: ' + p.quantity;
-  $('buyMsg').textContent = '';
-  $('buyNameBlock').classList.toggle('hidden', method !== 'kingroom');
-  $('buyLoginBlock').classList.toggle('hidden', method === 'kingroom' || !!me);
+function bindPendingButtons(pl, data) {
+  pl.querySelectorAll('.buy-ok').forEach(b => {
+    b.onclick = async () => {
+      const x = data.find(v => v.id === b.dataset.id);
+      const { data: res } = await supabase.rpc('confirm_purchase', { p_id: x.id });
+      if (res === 'OK') { toast('✅ Покупка подтверждена'); await loadPendingPurchases(true); await loadShop(); await refreshPoints(); }
+      else toast(res || 'Ошибка');
+    };
+  });
+  pl.querySelectorAll('.buy-no').forEach(b => {
+    b.onclick = async () => {
+      const { data: res } = await supabase.rpc('reject_purchase', { p_id: b.dataset.id });
+      if (res === 'OK') { toast('Покупка отклонена'); await loadPendingPurchases(true); }
+      else toast(res || 'Ошибка');
+    };
+  });
 }
-
-function closeBuy() {
-  currentBuy = null;
-  $('buyModal').classList.add('hidden');
-  $('buyName').value = ''; $('buySurname').value = ''; $('mNick').value = ''; $('mPass').value = '';
-  $('miniMsg').textContent = ''; $('buyMsg').textContent = '';
-}
-
-$('btnBuyConfirm').onclick = async () => {
-  if (!currentBuy) return;
-  const msg = $('buyMsg'); msg.className = 'ok'; msg.textContent = '';
-  const { product: p, method } = currentBuy;
-  let buyerName = null;
-  if (method === 'kingroom') {
-    const n = $('buyName').value.trim(), s = $('buySurname').value.trim();
-    if (!n || !s) { msg.className = 'err'; msg.textContent = 'Впишите имя и фамилию'; void msg.offsetWidth; msg.classList.add('shake'); return; }
-    buyerName = n + ' ' + s;
-  }
-  if (method !== 'kingroom' && !me) { msg.className = 'err'; msg.textContent = 'Сначала войдите в аккаунт'; return; }
-  if (method === 'guest' && !isGuestAcc) { msg.className = 'err'; msg.textContent = 'Баллами гостя платят только гости'; return; }
-  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: buyerName });
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Заявка отправлена владельцу — после подтверждения товар ваш';
-  toast('🛒 Заявка на «' + p.title + '» отправлена');
-  if (me) { await refreshPoints(); await loadHistory(); }
-  setTimeout(() => { closeBuy(); loadShop(); }, 1100);
-};
-
-$('btnMiniLogin').onclick = async () => {
-  const nick = $('mNick').value.trim().toLowerCase(), pass = $('mPass').value;
-  const m = $('miniMsg'); m.textContent = '';
-  if (!nick || !pass) { m.textContent = 'Заполни ник и пароль'; return; }
-  let r = await supabase.auth.signInWithPassword({ email: nick + '@mysait.local', password: pass });
-  if (r.error) r = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
-  if (r.error) { m.textContent = 'Неверный ник или пароль'; return; }
-  $('buyLoginBlock').classList.add('hidden');
-  const { data: u } = await supabase.auth.getUser();
-  me = u.user; myNick = nick; isAdmin = false;
-  const { data: rr } = await supabase.from('accounts').select('is_guest').eq('user_id', me.id).maybeSingle();
-  isGuestAcc = !!(rr && rr.is_guest);
-  await clearMyKickFlag(); updateLastSeen();
-  await refreshPoints();
-  loadShop();
-  toast('Вход выполнен — можно платить баллами');
-};
 
 async function loadPendingPurchases(silent) {
   if (!isAdmin) return;
@@ -1627,45 +1833,25 @@ async function loadPendingPurchases(silent) {
   const fresh = (data || []).filter(x => !puSeen.has(x.id));
   (data || []).forEach(x => puSeen.add(x.id));
   if (!silent && fresh.length) {
-    fresh.forEach(x => toast('🛒 Покупка: ' + (x.buyer_name || x.buyer_nick || '?') + ' → «' + (prodMap[x.product_id] || 'товар') + '»'));
+    fresh.forEach(x => toast('🛒 Хотят купить: ' + (x.buyer_name || x.buyer_nick || '?') + ' → «' + (prodMap[x.product_id] || 'товар') + '»'));
     beep();
   }
-  const pl = $('pendingList');
-  if (pl) {
-    pl.innerHTML = (data || []).length ? '' : '<div class="small">Заявок пока нет</div>';
-    (data || []).forEach(x => {
-      const d = document.createElement('div'); d.className = 'item';
-      d.innerHTML = `<span>${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» (${methodLabel(x.method)})</span>`;
-      const row = document.createElement('div'); row.className = 'row';
-      const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Успешная оплата';
-      okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-      okb.onclick = async () => {
-        const { data: res } = await supabase.rpc('confirm_purchase', { p_id: x.id });
-        if (res === 'OK') { toast('✅ Покупка подтверждена'); await loadPendingPurchases(true); await loadShop(); await refreshPoints(); await loadHistory(); }
-        else toast(res || 'Ошибка');
-      };
-      const rb = document.createElement('button'); rb.className = 'danger'; rb.textContent = '✕ Отклонить';
-      rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-      rb.onclick = async () => {
-        const { data: res } = await supabase.rpc('reject_purchase', { p_id: x.id });
-        if (res === 'OK') { toast('Покупка отклонена'); await loadPendingPurchases(true); }
-        else toast(res || 'Ошибка');
-      };
-      row.appendChild(okb); row.appendChild(rb); d.appendChild(row); pl.appendChild(d);
-    });
-  }
+  const html = renderPendingItems(data || []);
+  const empty = (data || []).length ? '' : '<div class="small">Заявок пока нет</div>';
+  const bl = $('buyReqList');
+  if (bl && buyReqsOpen) { bl.innerHTML = empty + html; bindPendingButtons(bl, data || []); }
   const { data: allP } = await supabase.from('purchases').select('*').order('created_at', { ascending: false }).limit(20);
   const ap = $('allPurchases');
   if (ap) {
     ap.innerHTML = ((allP || []).map(x => {
       const st = x.status === 'done' ? '✅' : (x.status === 'rejected' ? '❌ отклонена' : '⏳');
-      return `<div class="item"><span>${st} ${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» — ${methodLabel(x.method)} · ${x.price} балл(ов)</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
+      return `<div class="item"><span>${st} ${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» — ${methodLabel(x.method)}${x.phone ? ' · 📞 ' + esc(x.phone) : ''} · ${x.price} балл(ов)</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
     }).join('')) || '<div class="small">Покупок пока нет</div>';
   }
 }
 
-async function loadHistory() {
-  const l = $('histList');
+async function loadHistory(listId) {
+  const l = $(listId || 'histList');
   if (!l || !me) return;
   const { data: pr } = await supabase.from('products').select('id,title');
   const pm = {}; (pr || []).forEach(p => pm[p.id] = p.title);
@@ -1732,7 +1918,7 @@ async function poll() {
       loadAudit();
     }
     if (guestsOpen) await loadGuestsData(false);
-    if (curPage === 'shop') { await loadPendingPurchases(false); loadShop(); }
+    if (buyReqsOpen) await loadPendingPurchases(false);
   }
 
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
