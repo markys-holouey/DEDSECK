@@ -164,6 +164,9 @@
       <div id="guestReqSection" class="hidden">
         <hr class="divider">
         <div class="small" style="margin-bottom:6px">🎁 Вы гость: запросите баллы у владельца, чтобы покупать в магазине.</div>
+        <div style="background:rgba(168,85,247,.12);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+          💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b>
+        </div>
         <div class="row">
           <input id="grAmount" type="number" min="1" placeholder="Сколько баллов нужно">
           <button id="btnGuestReq">Запросить</button>
@@ -223,6 +226,36 @@
       </div>
 
       <div class="panel anim-in">
+        <button id="btnAddProductOpen" style="width:100%;font-size:16px;padding:14px">📦 Добавить товар</button>
+      </div>
+
+      <div id="addProductBlock" class="panel hidden">
+        <h3>📦 Добавить товар</h3>
+        <div id="dropZone">
+          Перетащите фото сюда или нажмите, чтобы выбрать<br>
+          <span class="small">(с телефона — из галереи, с ПК — клик, перетащить или Ctrl+V)</span>
+          <input id="photoInput" type="file" accept="image/*" style="display:none">
+        </div>
+        <div id="photoPreview"></div>
+        <label>Название</label>
+        <input id="pTitle" placeholder="Название товара">
+        <label>Описание</label>
+        <input id="pDesc" placeholder="Описание">
+        <div class="row">
+          <input id="pPriceRub" type="number" min="0" step="0.01" placeholder="Цена в рублях">
+        </div>
+        <div class="row">
+          <input id="pPrice" type="number" min="1" placeholder="Цена в баллах DEDSECK">
+          <input id="pGuestPrice" type="number" min="1" placeholder="Цена в баллах гостя">
+        </div>
+        <div class="row">
+          <input id="pQty" type="number" min="1" value="1" placeholder="Количество" style="max-width:140px">
+        </div>
+        <button id="btnAddProduct">Создать товар</button>
+        <div id="addProdMsg" class="ok"></div>
+      </div>
+
+      <div class="panel anim-in">
         <h3>🔑 Пароль владельца</h3>
         <div class="small" style="margin-bottom:4px">После смены вход — по новому паролю.</div>
         <input id="newAdminPass" type="password" placeholder="Новый пароль (мин. 6 символов)">
@@ -273,7 +306,7 @@
   <div id="pageShop" class="wrap hidden">
     <div class="panel anim-in">
       <h3>🛒 Магазин DEDSECK</h3>
-      <div class="small">Выбери товар и способ оплаты. Покупка подтверждается владельцем.</div>
+      <div class="small">Выбери товар и способ оплаты: рубли, баллы DEDSECK или баллы гостя. Покупка подтверждается владельцем.</div>
     </div>
 
     <div id="pendingBlock" class="panel hidden">
@@ -282,27 +315,6 @@
       <hr class="divider">
       <div class="small" style="margin-bottom:4px"><b>🧾 Все покупки:</b></div>
       <div id="allPurchases"></div>
-    </div>
-
-    <div id="shopAdminBlock" class="panel hidden">
-      <h3>📦 Выставить товар</h3>
-      <div id="dropZone">
-        Перетащите фото сюда или нажмите, чтобы выбрать<br>
-        <span class="small">(с телефона — выбрать фото из галереи, с ПК — перетащить или Ctrl+V)</span>
-        <input id="photoInput" type="file" accept="image/*" style="display:none">
-      </div>
-      <div id="photoPreview"></div>
-      <label>Название</label>
-      <input id="pTitle" placeholder="Название товара">
-      <label>Описание</label>
-      <input id="pDesc" placeholder="Описание">
-      <div class="row">
-        <input id="pPriceRub" type="number" min="0" placeholder="Цена в рублях">
-        <input id="pPrice" type="number" min="1" placeholder="Цена (баллы DEDSECK)">
-        <input id="pQty" type="number" min="1" value="1" placeholder="Количество" style="max-width:140px">
-      </div>
-      <button id="btnAddProduct">Выставить</button>
-      <div id="addProdMsg" class="ok"></div>
     </div>
 
     <div class="panel anim-in">
@@ -325,7 +337,7 @@
       <input id="buySurname" placeholder="Фамилия">
     </div>
     <div id="buyLoginBlock" class="hidden">
-      <div class="small" style="margin:8px 0 4px">Войдите в аккаунт, чтобы платить баллами DEDSECK:</div>
+      <div class="small" style="margin:8px 0 4px">Войдите в аккаунт, чтобы платить баллами:</div>
       <label>Ник</label>
       <input id="mNick" autocomplete="off">
       <label>Пароль</label>
@@ -339,7 +351,7 @@
   </div>
 </div>
 
-<!-- Регистрация гостя (мгновенная) -->
+<!-- Регистрация гостя -->
 <div id="guestRegModal" class="overlay hidden">
   <div class="card" style="width:360px">
     <div class="row" style="justify-content:space-between;margin-bottom:6px">
@@ -399,7 +411,7 @@ let pollTimer = null, pollLast = new Date().toISOString();
 let notifCache = [], seen = new Set(), accounts = [], guestAccs = [];
 let wdCache = [], wdSeen = new Set(), grSeen = new Set();
 let unreadCount = 0, selectedId = null, selectedGuestId = null;
-let membersOpen = false, guestsOpen = false;
+let membersOpen = false, guestsOpen = false, addProductOpen = false;
 let stopped = false, serverOff = false, timerArmed = false;
 let alarmOn = false, devWatchOn = false, devReported = false;
 let lastListSignature = '', lastGuestSignature = '', rtChannel = null;
@@ -408,6 +420,7 @@ let pendingPhoto = null, currentBuy = null, curPage = 'main';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const methodLabel = m => m === 'kingroom' ? 'рубли' : (m === 'guest' ? 'баллы гостя' : 'DEDSECK');
 
 $('btnLogin').onclick = login;
 $('pass').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
@@ -426,6 +439,11 @@ $('notifModal').addEventListener('click', e => { if (e.target === $('notifModal'
 $('btnGuestReg').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
 $('btnGuestRegClose').onclick = () => $('guestRegModal').classList.add('hidden');
 $('guestRegModal').addEventListener('click', e => { if (e.target === $('guestRegModal')) $('guestRegModal').classList.add('hidden'); });
+$('btnAddProductOpen').onclick = () => {
+  addProductOpen = !addProductOpen;
+  $('addProductBlock').classList.toggle('hidden', !addProductOpen);
+  $('btnAddProductOpen').textContent = addProductOpen ? '📦 Добавить товар ▲' : '📦 Добавить товар';
+};
 
 async function getSetting(key) {
   try {
@@ -1449,16 +1467,33 @@ function renderProducts() {
   for (const p of shopCache) {
     const d = document.createElement('div');
     d.className = 'prod';
+    const prices = [
+      p.price_rub ? `₽ ${p.price_rub}` : null,
+      `DEDSECK: ${p.price} балл(ов)`,
+      `гость: ${p.guest_price ?? p.price} балл(ов)`
+    ].filter(Boolean).join(' · ');
     d.innerHTML = (p.photo ? `<img class="prodimg" src="${p.photo}">` : '') +
       `<div class="pname">${esc(p.title)}</div>` +
       `<div class="small">${esc(p.description || '')}</div>` +
-      `<div>Цена: <span class="prodprice">${p.price}</span> балл(ов) · В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}</div>`;
+      `<div>Цена: <span class="prodprice">${prices}</span></div>` +
+      `<div class="small">В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}</div>`;
     const row = document.createElement('div'); row.className = 'row';
     const soldOut = p.quantity <= 0;
-    const b2 = document.createElement('button'); b2.className = 'okbtn'; b2.textContent = '💳 Оплатить баллами DEDSECK';
-    b2.style.cssText = 'margin-top:0'; b2.disabled = soldOut;
-    b2.onclick = () => startBuy(p, 'dedseck');
-    row.appendChild(b2); d.appendChild(row);
+
+    const bRub = document.createElement('button'); bRub.className = 'warn'; bRub.textContent = '💳 Купить за рубли';
+    bRub.style.cssText = 'margin-top:0'; bRub.disabled = soldOut;
+    bRub.onclick = () => startBuy(p, 'kingroom');
+
+    const bDed = document.createElement('button'); bDed.className = 'okbtn'; bDed.textContent = '💳 Оплатить баллами DEDSECK';
+    bDed.style.cssText = 'margin-top:0'; bDed.disabled = soldOut || !me || isGuestAcc;
+    bDed.onclick = () => startBuy(p, 'dedseck');
+
+    const bGuest = document.createElement('button'); bGuest.className = 'okbtn'; bGuest.textContent = '💳 Оплатить баллами гостя';
+    bGuest.style.cssText = 'margin-top:0'; bGuest.disabled = soldOut || !me || !isGuestAcc;
+    bGuest.onclick = () => startBuy(p, 'guest');
+
+    row.appendChild(bRub); row.appendChild(bDed); row.appendChild(bGuest);
+    d.appendChild(row);
     if (isAdmin) {
       const del = document.createElement('button'); del.className = 'gray'; del.textContent = '🗑 Убрать товар';
       del.style.cssText = 'margin-top:0';
@@ -1476,7 +1511,7 @@ dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
 dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files[0]) handlePhoto(e.dataTransfer.files[0]); });
 $('photoInput').onchange = e => { if (e.target.files[0]) handlePhoto(e.target.files[0]); };
 document.addEventListener('paste', e => {
-  if ($('pageShop').classList.contains('hidden') || $('shopAdminBlock').classList.contains('hidden')) return;
+  if ($('addProductBlock').classList.contains('hidden')) return;
   const it = e.clipboardData && e.clipboardData.items;
   if (!it) return;
   for (const item of it) {
@@ -1502,25 +1537,38 @@ function handlePhoto(file) {
 $('btnAddProduct').onclick = async () => {
   const msg = $('addProdMsg'); msg.className = 'ok'; msg.textContent = '';
   const t = $('pTitle').value.trim(), dsc = $('pDesc').value.trim();
-  const price = parseInt($('pPrice').value, 10), qty = parseInt($('pQty').value, 10);
+  const price = parseInt($('pPrice').value, 10);
+  const gPrice = parseInt($('pGuestPrice').value, 10) || price;
+  const qty = parseInt($('pQty').value, 10);
   const priceRub = parseFloat($('pPriceRub').value) || 0;
-  if (!t || isNaN(price) || price < 1 || isNaN(qty) || qty < 1) { msg.className = 'err'; msg.textContent = 'Заполни название, цену в баллах и количество'; return; }
-  const { error } = await supabase.from('products').insert({ title: t, description: dsc, price, price_rub: priceRub, quantity: qty, photo: pendingPhoto });
+  if (!t || isNaN(price) || price < 1 || isNaN(qty) || qty < 1) { msg.className = 'err'; msg.textContent = 'Заполни название, цену в баллах DEDSECK и количество'; return; }
+  const { error } = await supabase.from('products').insert({
+    title: t, description: dsc, price, price_rub: priceRub, guest_price: gPrice, quantity: qty, photo: pendingPhoto
+  });
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Товар выставлен';
-  $('pTitle').value = ''; $('pDesc').value = ''; $('pPrice').value = ''; $('pPriceRub').value = ''; $('pQty').value = '1';
+  $('pTitle').value = ''; $('pDesc').value = ''; $('pPrice').value = ''; $('pGuestPrice').value = ''; $('pPriceRub').value = ''; $('pQty').value = '1';
   pendingPhoto = null; $('photoPreview').innerHTML = '';
   loadShop();
 };
+
+function priceFor(p, method) {
+  if (method === 'kingroom') return null;
+  if (method === 'guest') return p.guest_price ?? p.price;
+  return p.price;
+}
 
 function startBuy(p, method) {
   currentBuy = { product: p, method };
   $('buyModal').classList.remove('hidden');
   $('buyTitle').textContent = '🛒 ' + p.title;
-  $('buyInfo').textContent = 'Цена: ' + p.price + ' балл(ов)' + (p.price_rub ? ' · ' + p.price_rub + ' руб.' : '') + ' · В наличии: ' + p.quantity;
+  const cost = priceFor(p, method);
+  $('buyInfo').textContent =
+    (method === 'kingroom' ? 'Цена: ₽ ' + (p.price_rub || 0) : 'Цена: ' + cost + ' балл(ов) (' + methodLabel(method) + ')') +
+    ' · В наличии: ' + p.quantity;
   $('buyMsg').textContent = '';
-  $('buyNameBlock').classList.add('hidden');
-  $('buyLoginBlock').classList.toggle('hidden', !!me);
+  $('buyNameBlock').classList.toggle('hidden', method !== 'kingroom');
+  $('buyLoginBlock').classList.toggle('hidden', method === 'kingroom' || !!me);
 }
 
 function closeBuy() {
@@ -1534,8 +1582,15 @@ $('btnBuyConfirm').onclick = async () => {
   if (!currentBuy) return;
   const msg = $('buyMsg'); msg.className = 'ok'; msg.textContent = '';
   const { product: p, method } = currentBuy;
-  if (method === 'dedseck' && !me) { msg.className = 'err'; msg.textContent = 'Сначала войдите в аккаунт'; return; }
-  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: null });
+  let buyerName = null;
+  if (method === 'kingroom') {
+    const n = $('buyName').value.trim(), s = $('buySurname').value.trim();
+    if (!n || !s) { msg.className = 'err'; msg.textContent = 'Впишите имя и фамилию'; void msg.offsetWidth; msg.classList.add('shake'); return; }
+    buyerName = n + ' ' + s;
+  }
+  if (method !== 'kingroom' && !me) { msg.className = 'err'; msg.textContent = 'Сначала войдите в аккаунт'; return; }
+  if (method === 'guest' && !isGuestAcc) { msg.className = 'err'; msg.textContent = 'Баллами гостя платят только гости'; return; }
+  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: buyerName });
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Заявка отправлена владельцу — после подтверждения товар ваш';
   toast('🛒 Заявка на «' + p.title + '» отправлена');
@@ -1553,8 +1608,11 @@ $('btnMiniLogin').onclick = async () => {
   $('buyLoginBlock').classList.add('hidden');
   const { data: u } = await supabase.auth.getUser();
   me = u.user; myNick = nick; isAdmin = false;
+  const { data: rr } = await supabase.from('accounts').select('is_guest').eq('user_id', me.id).maybeSingle();
+  isGuestAcc = !!(rr && rr.is_guest);
   await clearMyKickFlag(); updateLastSeen();
   await refreshPoints();
+  loadShop();
   toast('Вход выполнен — можно платить баллами');
 };
 
@@ -1577,7 +1635,7 @@ async function loadPendingPurchases(silent) {
     pl.innerHTML = (data || []).length ? '' : '<div class="small">Заявок пока нет</div>';
     (data || []).forEach(x => {
       const d = document.createElement('div'); d.className = 'item';
-      d.innerHTML = `<span>${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» (${x.method === 'kingroom' ? 'King Room' : 'DEDSECK'})</span>`;
+      d.innerHTML = `<span>${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» (${methodLabel(x.method)})</span>`;
       const row = document.createElement('div'); row.className = 'row';
       const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Успешная оплата';
       okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
@@ -1601,7 +1659,7 @@ async function loadPendingPurchases(silent) {
   if (ap) {
     ap.innerHTML = ((allP || []).map(x => {
       const st = x.status === 'done' ? '✅' : (x.status === 'rejected' ? '❌ отклонена' : '⏳');
-      return `<div class="item"><span>${st} ${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» — ${x.price} балл(ов)</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
+      return `<div class="item"><span>${st} ${esc(x.buyer_name || x.buyer_nick || '?')} → «${esc(prodMap[x.product_id] || 'товар')}» — ${methodLabel(x.method)} · ${x.price} балл(ов)</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
     }).join('')) || '<div class="small">Покупок пока нет</div>';
   }
 }
@@ -1616,7 +1674,7 @@ async function loadHistory() {
   const mine = (data || []).filter(x => x.user_id === me.id);
   l.innerHTML = mine.map(x => {
     const st = x.status === 'done' ? '✅ успешно' : (x.status === 'rejected' ? '❌ отклонена' : '⏳ ждёт подтверждения');
-    return `<div class="item"><span>«${esc(pm[x.product_id] || 'товар')}» — ${x.price} балл(ов) · ${st}</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
+    return `<div class="item"><span>«${esc(pm[x.product_id] || 'товар')}» — ${methodLabel(x.method)} · ${x.price} балл(ов) · ${st}</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
   }).join('') || '<div class="small">Покупок пока нет</div>';
 }
 
