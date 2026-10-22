@@ -220,7 +220,6 @@
         <div class="small" style="margin-bottom:4px"><b>Зарегистрированные гости:</b> нажми на гостя — баллы, бан, удаление.</div>
         <button id="btnGuestsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
         <div id="guestList"></div>
-        <div id="guestDetMsg" class="ok"></div>
       </div>
 
       <div class="panel anim-in">
@@ -289,7 +288,7 @@
       <h3>📦 Выставить товар</h3>
       <div id="dropZone">
         Перетащите фото сюда или нажмите, чтобы выбрать<br>
-        <span class="small">(с телефона — выбрать фото из галереи)</span>
+        <span class="small">(с телефона — выбрать фото из галереи, с ПК — перетащить или Ctrl+V)</span>
         <input id="photoInput" type="file" accept="image/*" style="display:none">
       </div>
       <div id="photoPreview"></div>
@@ -298,7 +297,8 @@
       <label>Описание</label>
       <input id="pDesc" placeholder="Описание">
       <div class="row">
-        <input id="pPrice" type="number" min="1" placeholder="Цена (баллы)">
+        <input id="pPriceRub" type="number" min="0" placeholder="Цена в рублях">
+        <input id="pPrice" type="number" min="1" placeholder="Цена (баллы DEDSECK)">
         <input id="pQty" type="number" min="1" value="1" placeholder="Количество" style="max-width:140px">
       </div>
       <button id="btnAddProduct">Выставить</button>
@@ -975,7 +975,7 @@ function renderAccountList(animate) {
     const isMe = a.user_id === me.id;
     const banned = isBanned(a);
     const d = document.createElement('div');
-    d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedId ? ' selected' : '');
+    d.className = 'item clickable' + (a.id === selectedId ? ' selected' : '');
     const wdCount = wdCache.filter(w => w.user_id === a.user_id).length;
     d.innerHTML = `
       <span class="usercell">
@@ -1231,9 +1231,6 @@ $('btnGuestCreate').onclick = async () => {
     void msg.offsetWidth; msg.classList.add('shake');
     return;
   }
-  if (accounts.some(a => a.nick === nick) || guestAccs.some(a => a.nick === nick)) {
-    msg.className = 'err'; msg.textContent = 'Такой ник уже занят'; return;
-  }
   const { data, error } = await supabase.auth.signUp({ email: nick + '@guest.local', password: pass });
   if (error) {
     msg.className = 'err';
@@ -1261,7 +1258,7 @@ $('btnGuestReq').onclick = async () => {
   toast('🎁 Запрос на баллы отправлен');
 };
 
-// ===== Гости: раскрывающийся список (как участники) =====
+// ===== Гости: раскрывающийся список =====
 async function loadGuestsData(silent) {
   if (!isAdmin) return;
   const { data: reqs } = await supabase.from('guest_requests').select('*').eq('status', 'pending').order('created_at');
@@ -1325,7 +1322,7 @@ function renderGuestList(animate) {
   for (const a of guestAccs) {
     const banned = isBanned(a);
     const d = document.createElement('div');
-    d.className = 'item clickable' + (animate ? ' item-anim' : '') + (a.id === selectedGuestId ? ' selected' : '');
+    d.className = 'item clickable' + (a.id === selectedGuestId ? ' selected' : '');
     d.innerHTML = `
       <span class="usercell">
         <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
@@ -1435,7 +1432,7 @@ async function deleteGuest(a) {
   loadAudit();
 }
 
-// ===== МАГАЗИН (отдельная страница) =====
+// ===== МАГАЗИН =====
 async function loadShop() {
   const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
   if (error) { $('productList').innerHTML = '<div class="small">Ошибка: ' + esc(error.message) + '</div>'; return; }
@@ -1458,13 +1455,10 @@ function renderProducts() {
       `<div>Цена: <span class="prodprice">${p.price}</span> балл(ов) · В наличии: ${p.quantity} · Куплено: ${p.sold_count || 0}</div>`;
     const row = document.createElement('div'); row.className = 'row';
     const soldOut = p.quantity <= 0;
-    const b1 = document.createElement('button'); b1.className = 'warn'; b1.textContent = '💳 Оплатить баллами King Room';
-    b1.style.cssText = 'margin-top:0'; b1.disabled = soldOut;
-    b1.onclick = () => startBuy(p, 'kingroom');
     const b2 = document.createElement('button'); b2.className = 'okbtn'; b2.textContent = '💳 Оплатить баллами DEDSECK';
     b2.style.cssText = 'margin-top:0'; b2.disabled = soldOut;
     b2.onclick = () => startBuy(p, 'dedseck');
-    row.appendChild(b1); row.appendChild(b2); d.appendChild(row);
+    row.appendChild(b2); d.appendChild(row);
     if (isAdmin) {
       const del = document.createElement('button'); del.className = 'gray'; del.textContent = '🗑 Убрать товар';
       del.style.cssText = 'margin-top:0';
@@ -1481,8 +1475,17 @@ dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dra
 dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
 dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files[0]) handlePhoto(e.dataTransfer.files[0]); });
 $('photoInput').onchange = e => { if (e.target.files[0]) handlePhoto(e.target.files[0]); };
+document.addEventListener('paste', e => {
+  if ($('pageShop').classList.contains('hidden') || $('shopAdminBlock').classList.contains('hidden')) return;
+  const it = e.clipboardData && e.clipboardData.items;
+  if (!it) return;
+  for (const item of it) {
+    if (item.type.startsWith('image/')) { handlePhoto(item.getAsFile()); break; }
+  }
+});
 
 function handlePhoto(file) {
+  if (!file || !file.type.startsWith('image/')) return;
   const img = new Image();
   img.onload = () => {
     const max = 800;
@@ -1500,11 +1503,12 @@ $('btnAddProduct').onclick = async () => {
   const msg = $('addProdMsg'); msg.className = 'ok'; msg.textContent = '';
   const t = $('pTitle').value.trim(), dsc = $('pDesc').value.trim();
   const price = parseInt($('pPrice').value, 10), qty = parseInt($('pQty').value, 10);
-  if (!t || isNaN(price) || price < 1 || isNaN(qty) || qty < 1) { msg.className = 'err'; msg.textContent = 'Заполни название, цену и количество'; return; }
-  const { error } = await supabase.from('products').insert({ title: t, description: dsc, price, quantity: qty, photo: pendingPhoto });
+  const priceRub = parseFloat($('pPriceRub').value) || 0;
+  if (!t || isNaN(price) || price < 1 || isNaN(qty) || qty < 1) { msg.className = 'err'; msg.textContent = 'Заполни название, цену в баллах и количество'; return; }
+  const { error } = await supabase.from('products').insert({ title: t, description: dsc, price, price_rub: priceRub, quantity: qty, photo: pendingPhoto });
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Товар выставлен';
-  $('pTitle').value = ''; $('pDesc').value = ''; $('pPrice').value = ''; $('pQty').value = '1';
+  $('pTitle').value = ''; $('pDesc').value = ''; $('pPrice').value = ''; $('pPriceRub').value = ''; $('pQty').value = '1';
   pendingPhoto = null; $('photoPreview').innerHTML = '';
   loadShop();
 };
@@ -1513,15 +1517,10 @@ function startBuy(p, method) {
   currentBuy = { product: p, method };
   $('buyModal').classList.remove('hidden');
   $('buyTitle').textContent = '🛒 ' + p.title;
-  $('buyInfo').textContent = 'Цена: ' + p.price + ' балл(ов) · В наличии: ' + p.quantity;
+  $('buyInfo').textContent = 'Цена: ' + p.price + ' балл(ов)' + (p.price_rub ? ' · ' + p.price_rub + ' руб.' : '') + ' · В наличии: ' + p.quantity;
   $('buyMsg').textContent = '';
-  if (method === 'kingroom') {
-    $('buyNameBlock').classList.remove('hidden');
-    $('buyLoginBlock').classList.add('hidden');
-  } else {
-    $('buyNameBlock').classList.add('hidden');
-    $('buyLoginBlock').classList.toggle('hidden', !!me);
-  }
+  $('buyNameBlock').classList.add('hidden');
+  $('buyLoginBlock').classList.toggle('hidden', !!me);
 }
 
 function closeBuy() {
@@ -1535,14 +1534,8 @@ $('btnBuyConfirm').onclick = async () => {
   if (!currentBuy) return;
   const msg = $('buyMsg'); msg.className = 'ok'; msg.textContent = '';
   const { product: p, method } = currentBuy;
-  let buyerName = null;
-  if (method === 'kingroom') {
-    const n = $('buyName').value.trim(), s = $('buySurname').value.trim();
-    if (!n || !s) { msg.className = 'err'; msg.textContent = 'Впишите имя и фамилию'; void msg.offsetWidth; msg.classList.add('shake'); return; }
-    buyerName = n + ' ' + s;
-  }
   if (method === 'dedseck' && !me) { msg.className = 'err'; msg.textContent = 'Сначала войдите в аккаунт'; return; }
-  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: buyerName });
+  const { error } = await supabase.from('purchases').insert({ product_id: p.id, method, buyer_name: null });
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Заявка отправлена владельцу — после подтверждения товар ваш';
   toast('🛒 Заявка на «' + p.title + '» отправлена');
@@ -1623,10 +1616,11 @@ async function loadHistory() {
   const mine = (data || []).filter(x => x.user_id === me.id);
   l.innerHTML = mine.map(x => {
     const st = x.status === 'done' ? '✅ успешно' : (x.status === 'rejected' ? '❌ отклонена' : '⏳ ждёт подтверждения');
-    return `<div class="item"><span>«${esc(pm[x.product_id] || 'товар')}» — ${x.price} балл(ов) · ${x.method === 'kingroom' ? 'King Room' : 'DEDSECK'} · ${st}</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
+    return `<div class="item"><span>«${esc(pm[x.product_id] || 'товар')}» — ${x.price} балл(ов) · ${st}</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
   }).join('') || '<div class="small">Покупок пока нет</div>';
 }
 
+// ===== УВЕДОМЛЕНИЯ И ОПРОС =====
 function loadSeen() { try { seen = new Set(JSON.parse(localStorage.getItem('seen_' + (me ? me.email : '')) || '[]')); } catch (e) { seen = new Set(); } }
 function saveSeen() { localStorage.setItem('seen_' + (me ? me.email : ''), JSON.stringify([...seen])); }
 
@@ -1680,8 +1674,7 @@ async function poll() {
       loadAudit();
     }
     if (guestsOpen) await loadGuestsData(false);
-    if (curPage === 'shop') await loadPendingPurchases(false);
-    if (curPage === 'shop') loadShop();
+    if (curPage === 'shop') { await loadPendingPurchases(false); loadShop(); }
   }
 
   const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
