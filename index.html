@@ -529,6 +529,7 @@ let stopped = false, serverOff = false, timerArmed = false;
 let alarmOn = false, devWatchOn = false, devReported = false;
 let lastListSignature = '', lastGuestSignature = '';
 let shopCache = [], prodMap = {}, pendingPhoto = null, currentBuy = null, pendingPage = null;
+let curPage = 'shop';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -884,6 +885,10 @@ async function openShopAsVisitor() {
 
 // ===== СТРАНИЦЫ =====
 function showPage(page) {
+  curPage = page;
+  // Гостевой кабинет показываем только гостям.
+  // Админ и участник туда попасть не могут — их перебрасывает в их кабинет.
+  if (page === 'guest' && me && !isGuestAcc) page = 'cabinet';
   $('pageCabinet').classList.toggle('hidden', page !== 'cabinet');
   $('pageShop').classList.toggle('hidden', page !== 'shop');
   $('pageGuest').classList.toggle('hidden', page !== 'guest');
@@ -916,7 +921,7 @@ $('enterAsModal').addEventListener('click', e => { if (e.target === $('enterAsMo
 $('btnAsGuest').onclick = () => {
   $('enterAsModal').classList.add('hidden');
   if (me && isGuestAcc) { showPage('guest'); return; }
-  if (me) { supabase.auth.signOut().then(() => location.reload()); return; }
+  if (me) { toast('Вы в аккаунте ' + myNick + '. Чтобы зайти гостем — сначала нажмите «Выйти» сверху'); return; }
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('adminSection').classList.add('hidden');
