@@ -244,7 +244,7 @@
     <button id="btnLogout" class="gray">Выйти</button>
   </div>
 
-  <!-- КАБИНЕТ УЧАСТНИКА -->
+  <!-- КАБИНЕТ УЧАСТНИКА (СОТРУДНИКА) -->
   <div id="pageCabinet" class="wrap">
     <div class="panel">
       <h3>👤 Кабинет участника</h3>
@@ -886,8 +886,7 @@ async function openShopAsVisitor() {
 // ===== СТРАНИЦЫ =====
 function showPage(page) {
   curPage = page;
-  // Гостевой кабинет показываем только гостям.
-  // Админ и участник туда попасть не могут — их перебрасывает в их кабинет.
+  // Гостевой кабинет доступен только гостям — остальные видят свой кабинет.
   if (page === 'guest' && me && !isGuestAcc) page = 'cabinet';
   $('pageCabinet').classList.toggle('hidden', page !== 'cabinet');
   $('pageShop').classList.toggle('hidden', page !== 'shop');
