@@ -229,7 +229,6 @@
       <button id="btnShopAuth" class="gray" style="width:100%">🛒 Магазин</button>
       <button id="btnEnterAsAuth" class="gray" style="width:100%">🔀 Войти как…</button>
       <button id="btnGuestReg" class="gray" style="width:100%">👤 Регистрация гостя</button>
-      <button id="btnSwitchMode" class="gray" style="width:100%">↔ Сотрудник / Гость</button>
     </div>
   </div>
 </div>
@@ -245,10 +244,10 @@
     <button id="btnLogout" class="gray">Выйти</button>
   </div>
 
-  <!-- КАБИНЕТ -->
+  <!-- КАБИНЕТ УЧАСТНИКА -->
   <div id="pageCabinet" class="wrap">
     <div class="panel">
-      <h3>👤 Кабинет</h3>
+      <h3>👤 Кабинет участника</h3>
       <div class="small">Мой баланс</div>
       <div class="points" id="pointsBig">0</div>
       <div class="note">💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b></div>
@@ -265,8 +264,8 @@
         <button id="btnMembers" style="width:100%;font-size:16px;padding:14px">👥 Участники</button>
       </div>
       <div id="membersBlock" class="panel hidden">
-        <h3>👥 Участники</h3>
-        <div class="small" style="margin-bottom:6px">Создать аккаунт</div>
+        <h3>👥 Участники (таблица members)</h3>
+        <div class="small" style="margin-bottom:6px">Создать аккаунт участника</div>
         <div class="row">
           <input id="newNick" placeholder="Ник нового участника">
           <input id="newPass" placeholder="Пароль (мин. 6 символов)">
@@ -280,7 +279,7 @@
         <div class="small" style="margin:8px 0 2px">Нажми на участника: баллы, кик, бан, удаление, запросы на вывод</div>
         <div id="accList"></div>
         <hr class="divider">
-        <div class="small" style="margin-bottom:4px"><b>Массово — сразу всем участникам:</b></div>
+        <div class="small" style="margin-bottom:4px"><b>Массово — сразу всем:</b></div>
         <div class="small" style="margin-bottom:2px">Начислить всем по:</div>
         <div class="row">
           <input id="massAddAmount" type="number" min="1" value="10" style="max-width:110px">
@@ -298,11 +297,11 @@
         <button id="btnGuests" style="width:100%;font-size:16px;padding:14px">👤 Гости</button>
       </div>
       <div id="guestsBlock" class="panel hidden">
-        <h3>👤 Гости</h3>
+        <h3>👤 Гости (таблица guest_accounts)</h3>
         <div class="small" style="margin-bottom:4px"><b>Запросы гостей на баллы:</b></div>
         <div id="guestReqsList"></div>
         <hr class="divider">
-        <div class="small" style="margin-bottom:4px"><b>Зарегистрированные гости:</b> нажми на гостя — баллы, бан, удаление.</div>
+        <div class="small" style="margin-bottom:4px"><b>Гости:</b> нажми на гостя — баллы, бан, удаление.</div>
         <button id="btnGuestsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
         <div id="guestList"></div>
       </div>
@@ -406,7 +405,7 @@
     </div>
   </div>
 
-  <!-- СТРАНИЦА ГОСТЯ -->
+  <!-- КАБИНЕТ ГОСТЯ -->
   <div id="pageGuest" class="wrap hidden">
     <div class="panel">
       <h3>👤 Кабинет гостя</h3>
@@ -459,8 +458,8 @@
     <h3 style="color:#c084fc;margin-bottom:8px">🔀 Войти как</h3>
     <button id="btnAsGuest" style="width:100%">👤 Как гость</button>
     <div class="small" style="text-align:center;margin:4px 0">Баланс, история, пополнение.<br>1 рубль = 10 баллов.</div>
-    <button id="btnAsEmployee" class="gray" style="width:100%">💼 Как сотрудник</button>
-    <div class="small" style="text-align:center;margin:4px 0">Вход по логину и паролю —<br>попадёшь в магазин как из аккаунта.</div>
+    <button id="btnAsEmployee" class="gray" style="width:100%">💼 Как участник</button>
+    <div class="small" style="text-align:center;margin:4px 0">Вход по логину и паролю —<br>магазин и кабинет участника.</div>
     <button id="btnEnterAsClose" class="gray" style="width:100%">✕ Закрыть</button>
   </div>
 </div>
@@ -516,17 +515,20 @@ const supabase = window.supabase.createClient(
 const ADMIN_EMAIL = 'polostyanoy@mysait.local';
 const PIN_CHANCE = 0.35;
 const ONLINE_MS = 35000;
+const TBL_MEMBERS = 'members';
+const TBL_GUESTS = 'guest_accounts';
+const tableFor = isGuest => isGuest ? TBL_GUESTS : TBL_MEMBERS;
 
-let me = null, myNick = '', isAdmin = false, isGuestAcc = false, savedCreds = null;
+let me = null, myNick = '', myTable = TBL_MEMBERS, isAdmin = false, isGuestAcc = false, savedCreds = null;
 let pollTimer = null, pollLast = new Date().toISOString();
 let notifCache = [], unreadCount = 0, seen = new Set();
-let accounts = [], guestAccs = [], wdCache = [];
+let members = [], guests = [], wdCache = [];
 let selectedId = null, selectedGuestId = null;
 let membersOpen = false, guestsOpen = false, wdOpen = false, addProductOpen = false, buyReqsOpen = false;
 let stopped = false, serverOff = false, timerArmed = false;
 let alarmOn = false, devWatchOn = false, devReported = false;
 let lastListSignature = '', lastGuestSignature = '';
-let shopCache = [], prodMap = {}, pendingPhoto = null, currentBuy = null, curPage = 'main', pendingPage = null;
+let shopCache = [], prodMap = {}, pendingPhoto = null, currentBuy = null, pendingPage = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -566,6 +568,13 @@ function lastSeenText(a) {
   return 'был ' + Math.floor(hours / 24) + ' дн назад';
 }
 function isBanned(a) { return a.banned_until && new Date(a.banned_until).getTime() > Date.now(); }
+
+async function rowForUserId(userId) {
+  let { data: r } = await supabase.from(TBL_MEMBERS).select('*').eq('user_id', userId).maybeSingle();
+  if (r) return { row: r, table: TBL_MEMBERS };
+  const g = await supabase.from(TBL_GUESTS).select('*').eq('user_id', userId).maybeSingle();
+  return { row: g.data, table: TBL_GUESTS };
+}
 
 // ===== НАСТРОЙКИ СЕРВЕРА =====
 async function getSetting(key) {
@@ -736,17 +745,17 @@ async function trySignIn(nick, pass) {
 
 async function updateLastSeen() {
   if (!me) return;
-  await supabase.from('accounts').update({ last_seen: new Date().toISOString() }).eq('user_id', me.id);
+  await supabase.from(myTable).update({ last_seen: new Date().toISOString() }).eq('user_id', me.id);
 }
 async function clearMyKickFlag() {
   if (!me) return;
-  await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
+  await supabase.from(myTable).update({ kick_flag: false }).eq('user_id', me.id);
 }
 
 async function kickSelf(atLogin, message) {
   stopped = true;
   clearInterval(pollTimer);
-  if (me) await supabase.from('accounts').update({ kick_flag: false }).eq('user_id', me.id);
+  if (me) await supabase.from(myTable).update({ kick_flag: false }).eq('user_id', me.id);
   await supabase.auth.signOut();
   me = null; isGuestAcc = false; isAdmin = false;
   if (atLogin) {
@@ -770,16 +779,16 @@ async function enterApp(nick, row) {
   isAdmin = ia || me.email === ADMIN_EMAIL;
 
   if (!row) {
-    const { data: rr } = await supabase.from('accounts').select('*').eq('user_id', me.id);
-    row = rr && rr[0];
+    const r = await rowForUserId(me.id);
+    row = r.row; myTable = r.table;
   }
-  if (!row) { await kickSelf(true, 'Такого аккаунта нет.'); return; }
+  if (!row) { await kickSelf(true, 'Аккаунт не найден в базе — зарегистрируйтесь заново.'); return; }
   if (row.deleted) { await kickSelf(true, 'Этот аккаунт удалён владельцем сайта'); return; }
   if (row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
     await kickSelf(true, 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now()));
     return;
   }
-  isGuestAcc = !!row.is_guest;
+  isGuestAcc = myTable === TBL_GUESTS;
   await clearMyKickFlag();
   updateLastSeen();
 
@@ -789,12 +798,12 @@ async function enterApp(nick, row) {
 
   $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
-  $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (isGuestAcc ? ' (гость)' : ''));
+  $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (isGuestAcc ? ' (гость)' : ' (участник)'));
   $('adminSection').classList.toggle('hidden', !isAdmin);
 
   if (isAdmin) {
     lastListSignature = '';
-    loadAccounts();
+    loadMembers();
     await loadWithdrawals(true);
     loadAudit();
     updateServerButton();
@@ -805,21 +814,21 @@ async function enterApp(nick, row) {
   }
 
   await initNotifications();
-  await loadHistory('histList');
   await refreshPoints();
-  showPage(pendingPage || 'shop');
+  showPage(pendingPage || (isGuestAcc ? 'guest' : 'shop'));
   pendingPage = null;
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, 10000);
   window.scrollTo(0, 0);
 }
 
-// ЕДИНАЯ ФУНКЦИЯ ЗАВЕРШЕНИЯ ВХОДА — раньше её не было, отсюда ошибка «finishLogin is not defined»
-async function finishLogin(nick) {
+// Единое завершение входа: тип аккаунта определяется доменом email,
+// строка берётся из своей таблицы (members или guest_accounts)
+async function finishLogin(nick, isGuest) {
   const { data: u } = await supabase.auth.getUser();
   if (!u || !u.user) { await supabase.auth.signOut(); return 'Сессия не найдена, попробуйте снова'; }
-  const { data: rows } = await supabase.from('accounts').select('*').eq('user_id', u.user.id);
-  const row = rows && rows[0];
+  myTable = tableFor(isGuest);
+  const { data: row } = await supabase.from(myTable).select('*').eq('user_id', u.user.id).maybeSingle();
   if (row && row.deleted) { await supabase.auth.signOut(); return 'Этот аккаунт удалён владельцем сайта'; }
   if (row && row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
     await supabase.auth.signOut();
@@ -851,7 +860,7 @@ $('btnLogin').onclick = async () => {
     return;
   }
   pendingPage = res.isGuest ? 'guest' : 'shop';
-  const err = await finishLogin(nick);
+  const err = await finishLogin(nick, res.isGuest);
   if (err) {
     m.textContent = err;
     void m.offsetWidth; m.classList.add('shake');
@@ -875,12 +884,12 @@ async function openShopAsVisitor() {
 
 // ===== СТРАНИЦЫ =====
 function showPage(page) {
-  curPage = page;
   $('pageCabinet').classList.toggle('hidden', page !== 'cabinet');
   $('pageShop').classList.toggle('hidden', page !== 'shop');
   $('pageGuest').classList.toggle('hidden', page !== 'guest');
   if (page === 'shop') loadShop();
   if (page === 'guest') updateGuestPage();
+  if (page === 'cabinet' && me) { refreshPoints(); loadHistory('histList'); }
   window.scrollTo(0, 0);
 }
 
@@ -922,7 +931,7 @@ $('btnAsEmployee').onclick = () => {
   $('authScreen').classList.remove('hidden');
   renderAuthScreen();
   $('nick').focus();
-  toast('Введите логин и пароль сотрудника');
+  toast('Введите логин и пароль участника');
 };
 
 // ===== РЕГИСТРАЦИЯ ГОСТЯ =====
@@ -937,19 +946,21 @@ $('btnGuestCreate').onclick = async () => {
   if (!nick || pass.length < 6) { msg.textContent = 'Укажи логин и пароль от 6 символов'; return; }
   const { data, error } = await supabase.auth.signUp({ email: nick + '@guest.local', password: pass });
   if (error) { msg.textContent = /already registered/i.test(error.message) ? 'Такой логин занят' : error.message; return; }
-  const { error: insErr } = await supabase.from('accounts')
-    .insert({ user_id: data.user.id, nick, points: 0, is_guest: true, last_seen: null });
+  const { error: insErr } = await supabase.from(TBL_GUESTS)
+    .insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
   if (insErr) { msg.textContent = 'Ошибка записи: ' + insErr.message; return; }
   msg.textContent = 'Готово! Теперь войдите как гость';
   $('gNick').value = ''; $('gPass').value = '';
   toast('👤 Гостевой аккаунт создан');
 };
 
-// ===== ВХОД ГОСТЯ (с любой формы) =====
+// ===== ВХОД ГОСТЯ =====
 async function guestLoginFrom(fieldNick, fieldPass, msgId) {
   const nick = $(fieldNick).value.trim().toLowerCase(), pass = $(fieldPass).value;
-  const m = $(msgId); m.textContent = '';
-  if (!nick || !pass) { m.textContent = 'Заполни логин и пароль'; return; }
+  const m = $(msgId); m.textContent = ''; m.classList.remove('shake');
+  if (!nick || !pass) { m.textContent = 'Заполни логин и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
+  if (await isServerOff()) { serverOff = true; renderAuthScreen(); return; }
+  if (alarmOn || await isAlarm()) { alarmOn = true; renderAuthScreen(); return; }
   const { error } = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
   if (error) {
     m.textContent = /invalid/i.test(error.message) ? 'Неверный логин или пароль (или это не гостевой аккаунт)' : error.message;
@@ -957,12 +968,13 @@ async function guestLoginFrom(fieldNick, fieldPass, msgId) {
     await reportFail('login');
     return;
   }
-  const err = await finishLogin(nick);
+  pendingPage = 'guest';
+  const err = await finishLogin(nick, true);
   if (err) m.textContent = err;
 }
 
-// ===== ГОСТЬ: СТРАНИЦА =====
 $('btnGuestLogin2').onclick = () => guestLoginFrom('geNick2', 'gePass2', 'geMsg2');
+$('geNick2').addEventListener('keydown', e => { if (e.key === 'Enter') guestLoginFrom('geNick2', 'gePass2', 'geMsg2'); });
 $('gePass2').addEventListener('keydown', e => { if (e.key === 'Enter') guestLoginFrom('geNick2', 'gePass2', 'geMsg2'); });
 $('btnGuestToShop').onclick = () => showPage('shop');
 
@@ -973,8 +985,9 @@ function updateGuestPage() {
   if (logged) { refreshPoints(); loadHistory('guestHistList'); }
 }
 
-$('btnGuestTopup').onclick = async () => {
-  const msg = $('guestTopMsg'); msg.textContent = '';
+// ===== ПОПОЛНЕНИЕ =====
+async function topup(msgId) {
+  const msg = $(msgId); msg.textContent = '';
   if (!me) { msg.textContent = 'Сначала войдите'; return; }
   const rub = parseFloat(prompt('💡 1 рубль = 10 баллов.\nСколько рублей вносите?'));
   if (isNaN(rub) || rub <= 0) { msg.textContent = 'Укажи число больше 0'; return; }
@@ -983,19 +996,9 @@ $('btnGuestTopup').onclick = async () => {
   if (error) { msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Заявка на ' + pts + ' балл(ов) (' + rub + ' руб.) отправлена владельцу';
   toast('💰 Заявка на пополнение отправлена');
-};
-
-$('btnTopup').onclick = async () => {
-  const msg = $('topMsg'); msg.textContent = '';
-  if (!me) { msg.textContent = 'Сначала войдите'; return; }
-  const rub = parseFloat(prompt('💡 1 рубль = 10 баллов.\nСколько рублей вносите?'));
-  if (isNaN(rub) || rub <= 0) { msg.textContent = 'Укажи число больше 0'; return; }
-  const pts = Math.round(rub * 10);
-  const { error } = await supabase.from('guest_requests').insert({ user_id: me.id, amount: pts });
-  if (error) { msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Заявка на ' + pts + ' балл(ов) (' + rub + ' руб.) отправлена владельцу';
-  toast('💰 Заявка на пополнение отправлена');
-};
+}
+$('btnTopup').onclick = () => topup('topMsg');
+$('btnGuestTopup').onclick = () => topup('guestTopMsg');
 
 $('btnLogout').onclick = async () => {
   clearInterval(pollTimer);
@@ -1006,7 +1009,7 @@ $('btnLogout').onclick = async () => {
 // ===== БАЛАНС =====
 async function refreshPoints() {
   if (!me) return;
-  const { data } = await supabase.from('accounts').select('points').eq('user_id', me.id).maybeSingle();
+  const { data } = await supabase.from(myTable).select('points').eq('user_id', me.id).maybeSingle();
   $('pointsBig').textContent = data ? (data.points || 0) : 0;
   $('guestPoints').textContent = data ? (data.points || 0) : 0;
 }
@@ -1116,10 +1119,10 @@ async function submitBuy(p, method) {
   }
   if (method !== 'kingroom' && !me) { msg.textContent = 'Сначала войдите в аккаунт'; return; }
   if (method === 'guest' && me && !isGuestAcc) { msg.textContent = 'Баллами гостя платят только гости'; return; }
-  if (method === 'dedseck' && me && isGuestAcc) { msg.textContent = 'Баллами DEDSECK платят только сотрудники'; return; }
+  if (method === 'dedseck' && me && isGuestAcc) { msg.textContent = 'Баллами DEDSECK платят только участники'; return; }
 
   const { error } = await supabase.from('purchases')
-    .insert({ product_id: p.id, method, buyer_name: buyerName, phone: buyerPhone });
+    .insert({ product_id: p.id, method, price: priceFor(p, method), buyer_name: buyerName, user_id: me ? me.id : null, phone: buyerPhone });
   if (error) { msg.textContent = 'Не получилось: ' + error.message; return; }
 
   const who = buyerName || myNick;
@@ -1152,34 +1155,38 @@ $('btnMembers').onclick = () => {
   membersOpen = !membersOpen;
   $('membersBlock').classList.toggle('hidden', !membersOpen);
   $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
-  if (membersOpen) { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); loadAudit(); }
+  if (membersOpen) { lastListSignature = ''; loadMembers(); loadWithdrawals(true); loadAudit(); }
 };
-$('btnReload').onclick = () => { lastListSignature = ''; loadAccounts(); loadWithdrawals(true); };
+$('btnReload').onclick = () => { lastListSignature = ''; loadMembers(); loadWithdrawals(true); };
 $('btnAudit').onclick = loadAudit;
 
-async function loadAccounts() {
+async function loadMembers() {
   if (!isAdmin) return;
-  const { data, error } = await supabase.from('accounts').select('*').order('nick');
+  const { data, error } = await supabase.from(TBL_MEMBERS).select('*').order('nick');
   const list = $('accList');
-  if (error) { accounts = []; guestAccs = []; list.innerHTML = '<div class="err">Ошибка: ' + esc(error.message) + '</div>'; return; }
-  const all = data || [];
-  guestAccs = all.filter(a => !a.deleted && a.is_guest);
-  accounts = all.filter(a => !a.deleted && !a.is_guest);
-  if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
-  renderAccountList();
+  if (error) { members = []; list.innerHTML = '<div class="err">Ошибка: ' + esc(error.message) + '</div>'; return; }
+  members = (data || []).filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_MEMBERS }));
+  if (selectedId && !members.some(a => a.id === selectedId)) selectedId = null;
+  renderMemberList();
   fillSendSelect();
-  lastGuestSignature = '';
+}
+
+async function loadGuestsList() {
+  const { data, error } = await supabase.from(TBL_GUESTS).select('*').order('nick');
+  if (error) { guests = []; return; }
+  guests = (data || []).filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_GUESTS }));
+  if (selectedGuestId && !guests.some(a => a.id === selectedGuestId)) selectedGuestId = null;
   renderGuestList();
 }
 
 function listSignature() {
-  return accounts.map(a => [
+  return members.map(a => [
     a.id, a.nick, a.points, isOnline(a) ? 1 : 0, isBanned(a) ? a.banned_until : '', a.id === selectedId ? 1 : 0,
     (a.id === selectedId) ? wdCache.filter(w => w.user_id === a.user_id).length : 0
   ].join('~')).join(';');
 }
 
-function renderAccountList() {
+function renderMemberList() {
   const list = $('accList');
   if (!list) return;
   const sig = listSignature();
@@ -1193,7 +1200,7 @@ function renderAccountList() {
     const bu = oldDet.querySelector('#banUnit'); if (bu) savedBanUnit = bu.value;
   }
   list.innerHTML = '';
-  for (const a of accounts) {
+  for (const a of members) {
     const isMe = a.user_id === me.id;
     const banned = isBanned(a);
     const d = document.createElement('div');
@@ -1212,7 +1219,7 @@ function renderAccountList() {
         </span>
       </span>
       <span class="small">${a.id === selectedId ? '▲ свернуть' : '▼ открыть'}</span>`;
-    d.onclick = () => { selectedId = (selectedId === a.id) ? null : a.id; lastListSignature = ''; renderAccountList(); };
+    d.onclick = () => { selectedId = (selectedId === a.id) ? null : a.id; lastListSignature = ''; renderMemberList(); };
     list.appendChild(d);
 
     if (a.id === selectedId) {
@@ -1281,7 +1288,7 @@ function renderAccountList() {
       det.querySelector('#detUnban').onclick = () => unbanMember(a);
     }
   }
-  if (!accounts.length) list.innerHTML = '<div class="small">Пока никого</div>';
+  if (!members.length) list.innerHTML = '<div class="small">Участников пока нет</div>';
 }
 
 async function changePointsDet(a, mode) {
@@ -1295,7 +1302,7 @@ async function changePointsDet(a, mode) {
   if (mode === 'set') newVal = amt;
   else if (mode === 'add') newVal = (a.points || 0) + amt;
   else newVal = Math.max(0, (a.points || 0) - amt);
-  const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   let word;
   if (mode === 'set') word = `Ваш баланс изменён на ${newVal} балл(ов).`;
@@ -1305,14 +1312,14 @@ async function changePointsDet(a, mode) {
   toast('Готово: у ' + a.nick + ' теперь ' + newVal + ' баллов');
   a.points = newVal;
   lastListSignature = '';
-  renderAccountList();
+  renderMemberList();
   await refreshPoints();
   loadAudit();
 }
 
 async function kickMember(a) {
   if (!confirm('Кикнуть «' + a.nick + '» с сайта?')) return;
-  const { error } = await supabase.from('accounts').update({ kick_flag: true }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не получилось кикнуть: ' + error.message); return; }
   toast('👋 ' + a.nick + ' будет кикнут сразу');
   loadAudit();
@@ -1328,36 +1335,36 @@ async function banMember(a) {
   if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
   const ms = unit === 'hours' ? amt * 3600000 : amt * 60000;
   const until = new Date(Date.now() + ms).toISOString();
-  const { error } = await supabase.from('accounts').update({ banned_until: until, kick_flag: true }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ banned_until: until, kick_flag: true }).eq('id', a.id);
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '.';
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
   a.banned_until = until;
   lastListSignature = '';
-  renderAccountList();
+  renderMemberList();
   loadAudit();
 }
 
 async function unbanMember(a) {
-  const { error } = await supabase.from('accounts').update({ banned_until: null }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ banned_until: null }).eq('id', a.id);
   if (error) { toast('Не получилось снять бан: ' + error.message); return; }
   a.banned_until = null;
   toast('Бан снят');
   lastListSignature = '';
   lastGuestSignature = '';
-  renderAccountList();
+  renderMemberList();
   renderGuestList();
   loadAudit();
 }
 
 async function deleteMember(a) {
   if (!confirm('Удалить участника «' + a.nick + '»? Он больше не сможет войти.')) return;
-  const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ deleted: true, kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не удалось удалить: ' + error.message); return; }
   if (selectedId === a.id) selectedId = null;
   toast('Участник удалён');
   lastListSignature = '';
-  await loadAccounts();
+  await loadMembers();
   loadAudit();
 }
 
@@ -1369,12 +1376,12 @@ async function changePointsAll(mode) {
   const amt = parseInt(input.value, 10);
   const msg = $('massMsg'); msg.className = 'ok'; msg.textContent = '';
   if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
-  const targets = accounts.concat(guestAccs).filter(a => a.user_id && a.user_id !== me.id);
-  if (!targets.length) { msg.className = 'err'; msg.textContent = 'Нет участников кроме тебя'; return; }
+  const targets = members.concat(guests).filter(a => a.user_id && a.user_id !== me.id);
+  if (!targets.length) { msg.className = 'err'; msg.textContent = 'Нет аккаунтов кроме тебя'; return; }
   let done = 0;
   for (const a of targets) {
     const newVal = mode === 'add' ? (a.points || 0) + amt : Math.max(0, (a.points || 0) - amt);
-    const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', a.id);
+    const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
     if (!error) {
       done++;
       await supabase.from('notifications').insert({
@@ -1384,10 +1391,10 @@ async function changePointsAll(mode) {
       a.points = newVal;
     }
   }
-  msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' участник(ов)';
+  msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' аккаунт(ов)';
   lastListSignature = '';
   lastGuestSignature = '';
-  renderAccountList();
+  renderMemberList();
   renderGuestList();
   loadAudit();
 }
@@ -1398,35 +1405,27 @@ $('btnCreate').onclick = async () => {
   const msg = $('createMsg'); msg.className = 'ok'; msg.textContent = '';
   if (!nick || !pass) { msg.className = 'err'; msg.textContent = 'Заполни ник и пароль'; return; }
   if (pass.length < 6) { msg.className = 'err'; msg.textContent = 'Пароль минимум 6 символов'; return; }
-  if (accounts.some(a => a.nick === nick) || guestAccs.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
+  if (members.some(a => a.nick === nick) || guests.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
   if (!savedCreds) { try { savedCreds = JSON.parse(sessionStorage.getItem('admin_creds')); } catch (e) {} }
-  const { error: alErr } = await supabase.from('allowed_nicks').insert({ nick });
-  if (alErr && !/duplicate/i.test(alErr.message || '')) { msg.className = 'err'; msg.textContent = 'Не удалось разрешить ник: ' + alErr.message; return; }
   const { data, error } = await supabase.auth.signUp({ email: nick + '@mysait.local', password: pass });
   if (error) {
     msg.className = 'err';
     msg.textContent = /already registered/i.test(error.message) ? 'Ник занят: выбери другой ник' : error.message;
-    await supabase.from('allowed_nicks').delete().eq('nick', nick);
     return;
   }
-  let claimed = false;
-  try { const { data: okc } = await supabase.rpc('claim_allowed_nick', { p_nick: nick }); claimed = !!okc; } catch (e) {}
   if (savedCreds) { await supabase.auth.signOut(); await supabase.auth.signInWithPassword(savedCreds); }
-  if (!claimed) {
-    const { error: insErr } = await supabase.from('accounts').insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
-    if (insErr) { msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка не записалась: ' + insErr.message; return; }
-  }
-  await supabase.from('allowed_nicks').delete().eq('nick', nick);
+  const { error: insErr } = await supabase.from(TBL_MEMBERS).insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
+  if (insErr) { msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка не записалась: ' + insErr.message; return; }
   msg.textContent = 'Аккаунт ' + nick + ' создан';
   $('newNick').value = ''; $('newPass').value = '';
   lastListSignature = '';
-  await loadAccounts();
+  await loadMembers();
 };
 
 function fillSendSelect() {
   const st = $('sendTo'), cur = st.value;
   st.innerHTML = '<option value="all">Всем</option>' +
-    accounts.concat(guestAccs).filter(a => a.user_id && a.user_id !== me.id)
+    members.concat(guests).filter(a => a.user_id && a.user_id !== me.id)
       .map(a => `<option value="${a.user_id}">${esc(a.nick)}</option>`).join('');
   if (cur) st.value = cur;
 }
@@ -1455,12 +1454,11 @@ async function loadGuestsData(silent) {
   if (!isAdmin) return;
   const { data: reqs } = await supabase.from('guest_requests').select('*').eq('status', 'pending').order('created_at');
   renderGuestReqs(reqs || []);
-  if (!accounts.length) await loadAccounts();
-  renderGuestList();
+  await loadGuestsList();
 }
 
 function guestListSignature() {
-  return guestAccs.map(a => [
+  return guests.map(a => [
     a.id, a.nick, a.points, isOnline(a) ? 1 : 0, isBanned(a) ? a.banned_until : '', a.id === selectedGuestId ? 1 : 0
   ].join('~')).join(';');
 }
@@ -1476,16 +1474,16 @@ function renderGuestReqs(reqs) {
     const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Начислить';
     okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
     okb.onclick = async () => {
-      const { data: acc } = await supabase.from('accounts').select('*').eq('user_id', r.user_id).maybeSingle();
+      const { data: acc } = await supabase.from(TBL_GUESTS).select('*').eq('user_id', r.user_id).maybeSingle();
       if (!acc) { toast('Аккаунт гостя не найден'); return; }
       const newVal = (acc.points || 0) + r.amount;
-      const { error: e1 } = await supabase.from('accounts').update({ points: newVal }).eq('id', acc.id);
+      const { error: e1 } = await supabase.from(TBL_GUESTS).update({ points: newVal }).eq('id', acc.id);
       if (e1) { toast('Не получилось: ' + e1.message); return; }
       await supabase.from('guest_requests').update({ status: 'done' }).eq('id', r.id);
       await supabase.from('notifications').insert({ recipient_id: r.user_id, text: `Вам начислено ${r.amount} балл(ов). Теперь у вас ${newVal}.` });
       toast('✅ Баллы начислены');
       lastGuestSignature = '';
-      await loadAccounts();
+      await loadMembers();
       await loadGuestsData(true);
     };
     const rb = document.createElement('button'); rb.className = 'danger'; rb.textContent = '✕ Отклонить';
@@ -1512,7 +1510,7 @@ function renderGuestList() {
     const ba = oldDet.querySelector('#gBanAmount'); if (ba && ba.value !== '') savedGBanAmount = ba.value;
   }
   list.innerHTML = '';
-  for (const a of guestAccs) {
+  for (const a of guests) {
     const banned = isBanned(a);
     const d = document.createElement('div');
     d.className = 'item clickable' + (a.id === selectedGuestId ? ' selected' : '');
@@ -1567,7 +1565,7 @@ function renderGuestList() {
       det.querySelector('#gDetDel').onclick = () => deleteGuest(a);
     }
   }
-  if (!guestAccs.length) list.innerHTML = '<div class="small">Гостей пока нет</div>';
+  if (!guests.length) list.innerHTML = '<div class="small">Гостей пока нет</div>';
 }
 
 async function changeGuestPoints(a, mode) {
@@ -1581,7 +1579,7 @@ async function changeGuestPoints(a, mode) {
   if (mode === 'set') newVal = amt;
   else if (mode === 'add') newVal = (a.points || 0) + amt;
   else newVal = Math.max(0, (a.points || 0) - amt);
-  const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   let word;
   if (mode === 'set') word = `Ваш баланс изменён на ${newVal} балл(ов).`;
@@ -1603,7 +1601,7 @@ async function banGuest(a) {
   msg.className = 'ok'; msg.textContent = '';
   if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
   const until = new Date(Date.now() + amt * 60000).toISOString();
-  const { error } = await supabase.from('accounts').update({ banned_until: until, kick_flag: true }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ banned_until: until, kick_flag: true }).eq('id', a.id);
   if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
   msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + amt + ' мин.';
   await supabase.from('notifications').insert({ recipient_id: a.user_id, text: '🚫 Владелец заблокировал вход на ' + amt + ' мин.' });
@@ -1615,12 +1613,11 @@ async function banGuest(a) {
 
 async function deleteGuest(a) {
   if (!confirm('Удалить гостя «' + a.nick + '»? Он больше не сможет войти.')) return;
-  const { error } = await supabase.from('accounts').update({ deleted: true, kick_flag: true }).eq('id', a.id);
+  const { error } = await supabase.from(a._tbl).update({ deleted: true, kick_flag: true }).eq('id', a.id);
   if (error) { toast('Не получилось: ' + error.message); return; }
   if (selectedGuestId === a.id) selectedGuestId = null;
   toast('Гость удалён');
   lastGuestSignature = '';
-  await loadAccounts();
   await loadGuestsData(true);
   loadAudit();
 }
@@ -1641,7 +1638,7 @@ async function loadWithdrawals(silent) {
   wdCache = data || [];
   renderWdList();
   lastListSignature = '';
-  renderAccountList();
+  renderMemberList();
 }
 
 function renderWdList() {
@@ -1664,16 +1661,18 @@ function renderWdList() {
 }
 
 async function confirmWithdrawal(w) {
-  const { data: acc } = await supabase.from('accounts').select('*').eq('user_id', w.user_id).maybeSingle();
+  const r = await rowForUserId(w.user_id);
+  const acc = r.row;
   if (!acc) { toast('Аккаунт не найден'); return; }
-  if ((acc.points || 0) < w.amount) { toast('У участника недостаточно баллов'); return; }
+  if ((acc.points || 0) < w.amount) { toast('У аккаунта недостаточно баллов'); return; }
   const newVal = (acc.points || 0) - w.amount;
-  const { error } = await supabase.from('accounts').update({ points: newVal }).eq('id', acc.id);
+  const { error } = await supabase.from(r.table).update({ points: newVal }).eq('id', acc.id);
   if (error) { toast('Не получилось: ' + error.message); return; }
   await supabase.from('withdrawals').update({ status: 'done' }).eq('id', w.id);
   await supabase.from('notifications').insert({ recipient_id: w.user_id, text: `Вывод ${w.amount} балл(ов) подтверждён. Осталось ${newVal}.` });
   toast('✅ Вывод подтверждён — баллы списаны');
-  await loadAccounts();
+  await loadMembers();
+  await loadGuestsList();
   await loadWithdrawals(true);
   await refreshPoints();
   loadAudit();
@@ -1682,9 +1681,9 @@ async function confirmWithdrawal(w) {
 async function rejectWithdrawal(w) {
   await supabase.from('withdrawals').update({ status: 'rejected' }).eq('id', w.id);
   await supabase.from('notifications').insert({ recipient_id: w.user_id, text: 'Ваш запрос на вывод отклонён. Баллы остались у вас.' });
-  toast('Вывод отклонён — баллы остались у участника');
+  toast('Вывод отклонён — баллы остались у аккаунта');
   lastListSignature = '';
-  renderAccountList();
+  renderMemberList();
   renderWdList();
 }
 
@@ -1775,7 +1774,7 @@ async function loadPendingPurchases(silent) {
   if (!(data || []).length) { l.innerHTML = '<div class="small">Заявок пока нет</div>'; return; }
   l.innerHTML = (data || []).map(x =>
     `<div class="item">
-      <span>🛒 <b>${esc(x.buyer_name || x.buyer_nick || '?')}</b>${x.phone ? ' · 📞 ' + esc(x.phone) : ''}
+      <span>🛒 <b>${esc(x.buyer_name || '?')}</b>${x.phone ? ' · 📞 ' + esc(x.phone) : ''}
       → «${esc(prodMap[x.product_id] || 'товар')}» · ${methodLabel(x.method)}</span>
       <span class="row" style="justify-content:flex-end">
         <button class="okbtn buy-ok" data-id="${x.id}" style="margin-top:0;padding:6px 12px;font-size:13px">✅ Торг завершён</button>
@@ -1785,11 +1784,14 @@ async function loadPendingPurchases(silent) {
   l.querySelectorAll('.buy-ok').forEach(b => {
     b.onclick = async () => {
       const x = data.find(v => v.id === b.dataset.id);
-      const { data: acc } = await supabase.from('accounts').select('*').eq('user_id', x.user_id).maybeSingle();
-      if (x.method !== 'kingroom' && acc) {
-        if ((acc.points || 0) < x.price) { toast('У участника недостаточно баллов'); return; }
-        await supabase.from('accounts').update({ points: (acc.points || 0) - x.price }).eq('id', acc.id);
-        await supabase.from('notifications').insert({ recipient_id: x.user_id, text: `Покупка «${prodMap[x.product_id] || 'товар'}» подтверждена. Списано ${x.price} балл(ов).` });
+      if (x.method !== 'kingroom' && x.user_id) {
+        const r = await rowForUserId(x.user_id);
+        const acc = r.row;
+        if (acc) {
+          if ((acc.points || 0) < x.price) { toast('У аккаунта недостаточно баллов'); return; }
+          await supabase.from(r.table).update({ points: (acc.points || 0) - x.price }).eq('id', acc.id);
+          await supabase.from('notifications').insert({ recipient_id: x.user_id, text: `Покупка «${prodMap[x.product_id] || 'товар'}» подтверждена. Списано ${x.price} балл(ов).` });
+        }
       }
       await supabase.from('purchases').update({ status: 'done' }).eq('id', x.id);
       const prod = shopCache.find(p2 => p2.id === x.product_id);
@@ -1953,7 +1955,8 @@ async function poll() {
     renderAuthScreen();
     return;
   }
-  const { data: myRows } = await supabase.from('accounts').select('*').eq('user_id', me.id).maybeSingle();
+  const r = await rowForUserId(me.id);
+  const myRows = r.row;
   if (myRows) {
     if (myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
     if (myRows.banned_until && new Date(myRows.banned_until).getTime() > Date.now()) { kickSelf(false, '🚫 Владелец запретил вам вход. Осталось: ' + fmtLeft(new Date(myRows.banned_until).getTime() - Date.now())); return; }
@@ -1963,12 +1966,11 @@ async function poll() {
 
   if (isAdmin) {
     if (membersOpen) {
-      const { data: freshAccounts } = await supabase.from('accounts').select('*');
-      if (freshAccounts) {
-        guestAccs = freshAccounts.filter(a => !a.deleted && a.is_guest);
-        accounts = freshAccounts.filter(a => !a.deleted && !a.is_guest);
-        if (selectedId && !accounts.some(a => a.id === selectedId)) selectedId = null;
-        renderAccountList();
+      const { data: freshMembers } = await supabase.from(TBL_MEMBERS).select('*');
+      if (freshMembers) {
+        members = freshMembers.filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_MEMBERS }));
+        if (selectedId && !members.some(a => a.id === selectedId)) selectedId = null;
+        renderMemberList();
         fillSendSelect();
       }
       await loadWithdrawals(true);
@@ -1997,10 +1999,8 @@ async function poll() {
       '<div style="padding:20px;color:#fb7185;text-align:center">Не загрузилась библиотека Supabase — проверьте интернет и обновите страницу.</div>');
     return;
   }
-  await supabase.auth.signOut();
   serverOff = await timerCheck();
   alarmOn = await isAlarm();
-  devWatchOn = (await getSetting('devtools_watch')) === 'true';
   renderAuthScreen();
   startAlarmWatch();
   setInterval(devWatchCheck, 1500);
