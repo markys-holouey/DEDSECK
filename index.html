@@ -2,2014 +2,830 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0714">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-512.png">
 <title>DEDSECK</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root{
-    --bg:#0b0714; --panel:rgba(26,16,44,.85); --line:rgba(190,120,255,.25);
-    --accent:#a855f7; --accent2:#7c3aed; --text:#f0e8ff; --muted:#a58cc9;
-    --ok:#4ade80; --err:#fb7185; --warn:#fbbf24;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-
-  .neon-grid{position:fixed;inset:-50%;z-index:-5;pointer-events:none;
-    background:
-      repeating-linear-gradient(0deg,transparent 0 90px,rgba(168,85,247,.07) 90px 92px),
-      repeating-linear-gradient(90deg,transparent 0 90px,rgba(168,85,247,.07) 90px 92px);
-    animation:gridPulse 6s ease-in-out infinite}
-  .neon-grid2{position:fixed;inset:-60%;z-index:-5;pointer-events:none;
-    background:
-      repeating-linear-gradient(0deg,transparent 0 45px,rgba(124,58,237,.05) 45px 46px),
-      repeating-linear-gradient(90deg,transparent 0 45px,rgba(124,58,237,.05) 45px 46px);
-    animation:gridPulse2 4.5s ease-in-out infinite, gridDrift 30s linear infinite}
-  @keyframes gridPulse{0%,100%{opacity:.5}50%{opacity:1}}
-  @keyframes gridPulse2{0%,100%{opacity:.35}50%{opacity:.8}}
-  @keyframes gridDrift{to{transform:translate(90px,90px)}}
-
-  .neon-lines{position:fixed;inset:-20%;z-index:-3;pointer-events:none;overflow:hidden}
-  .neon-lines span{position:absolute;height:2px;width:140%;border-radius:2px;
-    background:linear-gradient(90deg,transparent,#a855f7 30%,#e879f9 50%,#a855f7 70%,transparent);
-    filter:blur(1px);animation:lineDrift 9s linear infinite}
-  .neon-lines span:nth-child(1){top:6%;animation-duration:8s;opacity:.55}
-  .neon-lines span:nth-child(2){top:15%;animation-duration:12s;animation-delay:-4s;opacity:.35;height:1px}
-  .neon-lines span:nth-child(3){top:24%;animation-duration:9s;animation-delay:-2s;opacity:.6;height:3px;filter:blur(2px)}
-  .neon-lines span:nth-child(4){top:33%;animation-duration:14s;animation-delay:-7s;opacity:.3;height:1px}
-  .neon-lines span:nth-child(5){top:42%;animation-duration:7s;animation-delay:-1s;opacity:.5}
-  .neon-lines span:nth-child(6){top:51%;animation-duration:11s;animation-delay:-5s;opacity:.45;height:1px}
-  .neon-lines span:nth-child(7){top:60%;animation-duration:10s;animation-delay:-3s;opacity:.6;height:3px;filter:blur(2px)}
-  .neon-lines span:nth-child(8){top:69%;animation-duration:13s;animation-delay:-8s;opacity:.3;height:1px}
-  .neon-lines span:nth-child(9){top:78%;animation-duration:8.5s;animation-delay:-6s;opacity:.55}
-  .neon-lines span:nth-child(10){top:87%;animation-duration:15s;animation-delay:-2s;opacity:.35;height:1px}
-  .neon-lines span:nth-child(11){top:94%;animation-duration:9.5s;animation-delay:-4.5s;opacity:.5;height:3px;filter:blur(2px)}
-  .neon-lines span:nth-child(12){top:50%;animation-duration:6.5s;animation-delay:-1.5s;opacity:.7;height:1px}
-  @keyframes lineDrift{0%{transform:translateX(-60%) rotate(-4deg)}100%{transform:translateX(60%) rotate(4deg)}}
-
-  .neon-beams{position:fixed;inset:0;z-index:-4;pointer-events:none;overflow:hidden}
-  .neon-beams span{position:absolute;width:1px;height:30%;top:-35%;
-    background:linear-gradient(180deg,transparent,rgba(232,121,249,.7),transparent);
-    filter:blur(1px);animation:beamFall 7s linear infinite}
-  .neon-beams span:nth-child(1){left:8%;animation-duration:6s}
-  .neon-beams span:nth-child(2){left:21%;animation-duration:9s;animation-delay:-3s;opacity:.5}
-  .neon-beams span:nth-child(3){left:34%;animation-duration:7s;animation-delay:-1s}
-  .neon-beams span:nth-child(4){left:47%;animation-duration:10s;animation-delay:-5s;opacity:.4}
-  .neon-beams span:nth-child(5){left:60%;animation-duration:6.5s;animation-delay:-2s}
-  .neon-beams span:nth-child(6){left:73%;animation-duration:8.5s;animation-delay:-4s;opacity:.5}
-  .neon-beams span:nth-child(7){left:86%;animation-duration:7.5s;animation-delay:-6s}
-  .neon-beams span:nth-child(8){left:95%;animation-duration:11s;animation-delay:-7s;opacity:.35}
-  @keyframes beamFall{0%{top:-35%;opacity:0}10%{opacity:.8}90%{opacity:.8}100%{top:110%;opacity:0}}
-
-  .neon-particles{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
-  .neon-particles i{position:absolute;width:4px;height:4px;border-radius:50%;
-    background:#e879f9;box-shadow:0 0 8px 2px rgba(232,121,249,.8);
-    bottom:-10px;animation:sparkUp linear infinite}
-  .neon-particles i:nth-child(1){left:5%;animation-duration:11s;animation-delay:-2s}
-  .neon-particles i:nth-child(2){left:15%;animation-duration:14s;animation-delay:-6s;transform:scale(.6)}
-  .neon-particles i:nth-child(3){left:26%;animation-duration:9s;animation-delay:-1s}
-  .neon-particles i:nth-child(4){left:38%;animation-duration:13s;animation-delay:-8s;transform:scale(1.4)}
-  .neon-particles i:nth-child(5){left:49%;animation-duration:10s;animation-delay:-4s}
-  .neon-particles i:nth-child(6){left:61%;animation-duration:15s;animation-delay:-9s;transform:scale(.7)}
-  .neon-particles i:nth-child(7){left:72%;animation-duration:8s;animation-delay:-3s}
-  .neon-particles i:nth-child(8){left:84%;animation-duration:12s;animation-delay:-5s;transform:scale(1.2)}
-  .neon-particles i:nth-child(9){left:93%;animation-duration:9.5s;animation-delay:-7s}
-  .neon-particles i:nth-child(10){left:50%;animation-duration:16s;animation-delay:-10s;transform:scale(.5)}
-  @keyframes sparkUp{
-    0%{transform:translateY(0) scale(1);opacity:0}
-    10%{opacity:.9}
-    90%{opacity:.9}
-    100%{transform:translateY(-110vh) scale(.2);opacity:0}
-  }
-
-  .neon-orb{position:fixed;width:60vw;height:60vw;border-radius:50%;z-index:-2;pointer-events:none;
-    filter:blur(70px);top:-20vw;right:-15vw;background:radial-gradient(circle,rgba(168,85,247,.22),transparent 70%);
-    animation:orbFloat 12s ease-in-out infinite alternate}
-  @keyframes orbFloat{to{transform:translate(-14vw,12vh) scale(1.2)}}
-  .neon-orb2{position:fixed;width:45vw;height:45vw;border-radius:50%;z-index:-2;pointer-events:none;
-    filter:blur(60px);bottom:-15vw;left:-10vw;background:radial-gradient(circle,rgba(124,58,237,.2),transparent 70%);
-    animation:orbFloat2 15s ease-in-out infinite alternate}
-  @keyframes orbFloat2{to{transform:translate(12vw,-10vh) scale(1.15)}}
-  .neon-orb3{position:fixed;width:35vw;height:35vw;border-radius:50%;z-index:-2;pointer-events:none;
-    filter:blur(50px);top:40vh;left:35vw;background:radial-gradient(circle,rgba(232,121,249,.13),transparent 70%);
-    animation:orbFloat3 18s ease-in-out infinite alternate}
-  @keyframes orbFloat3{to{transform:translate(-10vw,-14vh) scale(1.3)}}
-
-  .scanlines{position:fixed;inset:0;z-index:98;pointer-events:none;
-    background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(168,85,247,.03) 3px 4px)}
-
-  .center{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px 0}
-  h1{text-align:center;font-size:34px;letter-spacing:5px;margin-bottom:4px;
-    background:linear-gradient(90deg,#c084fc,#e879f9,#c084fc);background-size:200% auto;
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    animation:shine 4s linear infinite, h1Glow 2.5s ease-in-out infinite}
-  @keyframes shine{to{background-position:200% center}}
-  @keyframes h1Glow{0%,100%{filter:drop-shadow(0 0 14px rgba(192,132,252,.35))}50%{filter:drop-shadow(0 0 34px rgba(232,121,249,.7))}}
-  .sub{text-align:center;color:var(--muted);margin-bottom:18px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:360px;max-width:94vw;
-    backdrop-filter:blur(12px);animation:cardGlow 3.5s ease-in-out infinite}
-  @keyframes cardGlow{
-    0%,100%{box-shadow:0 0 20px rgba(168,85,247,.2),inset 0 0 30px rgba(124,58,237,.06)}
-    50%{box-shadow:0 0 40px rgba(168,85,247,.45),inset 0 0 30px rgba(124,58,237,.12)}}
-  label{display:block;margin:10px 0 4px;color:var(--muted);font-size:14px}
-  input,textarea,select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);
-    background:rgba(15,8,28,.75);color:var(--text);font-size:15px;transition:box-shadow .2s,border-color .2s}
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(168,85,247,.25),0 0 14px rgba(168,85,247,.45)}
-  button{cursor:pointer;border:none;border-radius:10px;padding:11px 15px;font-size:15px;color:#fff;margin-top:10px;font-weight:500;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(168,85,247,.4);
-    transition:box-shadow .2s,transform .12s,filter .2s;position:relative;overflow:hidden}
-  button:hover{box-shadow:0 0 26px rgba(168,85,247,.75),0 0 60px rgba(124,58,237,.35);filter:brightness(1.15)}
-  button:active{transform:scale(.96);box-shadow:0 0 8px rgba(168,85,247,.5)}
-  button::after{content:'';position:absolute;top:0;left:-80%;width:60%;height:100%;
-    background:linear-gradient(120deg,transparent,rgba(255,255,255,.22),transparent);transition:left .5s ease}
-  button:hover::after{left:120%}
-  button.primary-pulse{animation:btnPulse 2.2s ease-in-out infinite}
-  @keyframes btnPulse{0%,100%{box-shadow:0 0 12px rgba(168,85,247,.4)}50%{box-shadow:0 0 30px rgba(168,85,247,.8),0 0 70px rgba(124,58,237,.3)}}
-  button.gray{background:linear-gradient(135deg,#2b1d47,#221540);box-shadow:0 0 8px rgba(168,85,247,.25)}
-  button.gray:hover{box-shadow:0 0 20px rgba(168,85,247,.55)}
-  button.okbtn{background:linear-gradient(135deg,#10b981,#047857);box-shadow:0 0 12px rgba(16,185,129,.4)}
-  button.okbtn:hover{box-shadow:0 0 24px rgba(16,185,129,.7)}
-  button.danger{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 0 12px rgba(239,68,68,.35)}
-  button.warn{background:linear-gradient(135deg,#f59e0b,#b45309);box-shadow:0 0 12px rgba(245,158,11,.35)}
-  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-  .err{color:var(--err);margin-top:8px;font-size:14px}
-  .err.shake{animation:shake .3s ease}
-  .ok{color:var(--ok);margin-top:8px;font-size:14px}
-  .hidden{display:none!important}
-  .topbar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(26,16,44,.95);
-    border-bottom:1px solid var(--line);flex-wrap:wrap;box-shadow:0 2px 24px rgba(168,85,247,.2);position:sticky;top:0;z-index:10}
-  .brand{margin-right:auto;font-weight:700;letter-spacing:3px;
-    background:linear-gradient(90deg,#c084fc,#e879f9);-webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 10px rgba(192,132,252,.6))}
-  .topbar button{padding:8px 12px;font-size:13px;margin-top:0}
-  .wrap{max-width:680px;margin:0 auto;padding:18px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;
-    box-shadow:0 0 18px rgba(168,85,247,.12),inset 0 0 30px rgba(124,58,237,.05);backdrop-filter:blur(10px);
-    transition:box-shadow .25s}
-  .panel:hover{box-shadow:0 0 28px rgba(168,85,247,.25),inset 0 0 30px rgba(124,58,237,.08)}
-  .panel h3{margin-bottom:10px;font-size:17px;color:#c084fc;text-shadow:0 0 12px rgba(192,132,252,.55)}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .row > input,.row > select{flex:1;min-width:120px}
-  .row > button{margin-top:0}
-  .small{color:var(--muted);font-size:13px}
-  .points{font-size:26px;font-weight:700;color:#e879f9;animation:pointsGlow 2.5s ease-in-out infinite}
-  @keyframes pointsGlow{0%,100%{text-shadow:0 0 10px rgba(232,121,249,.5)}50%{text-shadow:0 0 22px rgba(232,121,249,.95)}}
-  .divider{border:none;border-top:1px dashed var(--line);margin:14px 0}
-  .note{background:rgba(168,85,247,.12);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0}
-  .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;
-    background:rgba(15,8,28,.6);border-radius:10px;margin-top:8px;transition:box-shadow .2s}
-  .item:hover{box-shadow:0 0 12px rgba(168,85,247,.25)}
-  .item.clickable{cursor:pointer;user-select:none}
-  .item.selected{border:1px solid var(--accent);background:rgba(168,85,247,.1);box-shadow:0 0 12px rgba(168,85,247,.25)}
-  .detail{background:rgba(15,8,28,.85);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:6px;margin-bottom:4px}
-  .usercell{display:flex;align-items:center;gap:10px}
-  .avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-    font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    box-shadow:0 0 10px rgba(168,85,247,.5)}
-  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px}
-  .pill.on{background:rgba(74,222,128,.14);color:var(--ok)}
-  .pill.off{background:rgba(165,140,201,.12);color:var(--muted)}
-  .pill.ban{background:rgba(251,113,133,.14);color:var(--err)}
-  .badge{background:#ef4444;border-radius:10px;padding:1px 7px;font-size:12px;color:#fff;box-shadow:0 0 8px rgba(239,68,68,.5)}
-  .locktext{text-align:center;color:var(--warn);font-size:15px;margin:8px 0 4px}
-  .alarmtext{text-align:center;color:var(--err);font-size:15px;margin:8px 0 4px}
-  .prod{background:rgba(15,8,28,.65);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;cursor:pointer;
-    transition:border-color .2s,box-shadow .25s,transform .15s}
-  .prod:hover{border-color:var(--accent);box-shadow:0 0 24px rgba(168,85,247,.45);transform:translateY(-2px)}
-  .prod:active{transform:scale(.98)}
-  .prodimg{width:100%;max-width:340px;border-radius:10px;margin:8px 0;display:block;box-shadow:0 0 18px rgba(168,85,247,.3)}
-  .prodprice{color:#e879f9;font-weight:700;text-shadow:0 0 10px rgba(232,121,249,.6)}
-  #dropZone{border:1px dashed rgba(192,132,252,.5);border-radius:10px;padding:14px;text-align:center;color:var(--muted);
-    cursor:pointer;font-size:14px;transition:border-color .2s,background .2s}
-  #dropZone.dragover{border-color:var(--accent);background:rgba(168,85,247,.1)}
-  .overlay{position:fixed;inset:0;background:rgba(8,4,18,.85);display:flex;align-items:center;justify-content:center;z-index:50;
-    padding:14px;backdrop-filter:blur(5px)}
-  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),var(--accent2));
-    padding:12px 20px;border-radius:12px;display:none;z-index:99;max-width:90vw;box-shadow:0 0 26px rgba(168,85,247,.6)}
+:root{
+  --bg:#07040f; --panel:rgba(25,14,48,.62); --line:rgba(168,85,247,.45);
+  --text:#f2ecff; --muted:#c0aaef; --accent:#a855f7; --accent2:#7c3aed;
+  --neon:#c026d3; --neon2:#8b5cf6; --ok:#34d399; --err:#fb7185;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:18px}   /* крупнее весь интерфейс */
+.hidden{display:none !important}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);min-height:100vh;
+  background:var(--bg);
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:-50%;z-index:-2;
+  background:
+    radial-gradient(700px 500px at 20% 20%,rgba(168,85,247,.22),transparent),
+    radial-gradient(800px 600px at 80% 80%,rgba(139,92,246,.18),transparent),
+    radial-gradient(600px 500px at 60% 10%,rgba(217,70,239,.14),transparent);
+  animation:drift 16s ease-in-out infinite alternate;
+}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(3%,-2%) scale(1.06)}
+  100%{transform:translate(-3%,2%) scale(1)}
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:99;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:16px 20px;position:sticky;top:0;z-index:10;
+  background:rgba(7,4,15,.75);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 4px 30px rgba(168,85,247,.35);
+}
+.brand{font-size:26px;font-weight:800;letter-spacing:2px;
+  background:linear-gradient(90deg,#f0abfc,#c084fc,#818cf8,#f0abfc);
+  background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:brandslide 5s linear infinite;
+  filter:drop-shadow(0 0 8px rgba(192,38,211,.8)) drop-shadow(0 0 20px rgba(139,92,246,.4));
+}
+@keyframes brandslide{to{background-position:250% 0}}
+main{max-width:760px;margin:0 auto;padding:20px 16px 70px}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:24px;margin-bottom:18px;backdrop-filter:blur(14px);
+  box-shadow:0 0 24px rgba(168,85,247,.25), inset 0 0 30px rgba(124,58,237,.08);
+  position:relative;
+}
+.panel::before{
+  content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:linear-gradient(120deg,rgba(192,38,211,.12),transparent 30%,transparent 70%,rgba(139,92,246,.12));
+}
+h2{font-size:1.5rem;margin-bottom:14px}
+h3{font-size:1.25rem;margin-bottom:10px}
+h2,h3{
+  color:#fff;
+  text-shadow:0 0 10px rgba(192,38,211,.9),0 0 30px rgba(139,92,246,.5);
+  letter-spacing:.5px;
+}
+.small{color:var(--muted);font-size:.85rem}
+.divider{border:none;border-top:1px solid var(--line);margin:16px 0;
+  box-shadow:0 0 8px rgba(168,85,247,.6)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{display:block;font-size:.9rem;color:var(--muted);margin:12px 0 5px}
+input,textarea{
+  width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(10,5,22,.85);color:var(--text);font-size:1.05rem;outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+input:focus,textarea:focus{
+  border-color:var(--neon);
+  box-shadow:0 0 12px rgba(192,38,211,.55), inset 0 0 8px rgba(139,92,246,.2);
+}
+textarea{resize:vertical}
+/* КНОПКИ — крупнее */
+.btn{
+  cursor:pointer;border:1px solid rgba(192,38,211,.55);border-radius:12px;
+  padding:13px 20px;font-size:1.05rem;font-weight:600;color:#fff;
+  background:linear-gradient(135deg,rgba(168,85,247,.9),rgba(124,58,237,.9));
+  box-shadow:0 0 12px rgba(168,85,247,.45);
+  transition:box-shadow .2s,transform .12s,filter .2s;
+  min-height:48px;   /* удобный тап на телефоне */
+}
+.btn:hover{
+  box-shadow:0 0 24px rgba(192,38,211,.85),0 0 44px rgba(139,92,246,.45);
+  filter:brightness(1.15);
+}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:0 0 8px rgba(168,85,247,.25)}
+.btn.gray{background:rgba(120,120,180,.22);border-color:rgba(148,163,184,.4);box-shadow:none}
+.btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:rgba(251,191,36,.6);box-shadow:0 0 10px rgba(245,158,11,.5)}
+.btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c);border-color:rgba(248,113,113,.6);box-shadow:0 0 10px rgba(239,68,68,.55)}
+.btn.tiny{padding:9px 13px;font-size:.95rem;min-height:40px}
+.btn.block{width:100%}
+.mini-input{width:86px;padding:9px 10px;font-size:.95rem;border-radius:10px;border:1px solid var(--line);
+  background:rgba(10,5,22,.85);color:var(--text)}
+.navbtn{position:relative}
+.navbtn.active{
+  background:linear-gradient(135deg,var(--neon),var(--accent2));color:#fff;
+  border-color:transparent;
+  box-shadow:0 0 14px rgba(192,38,211,.8),0 0 30px rgba(139,92,246,.4);
+}
+.points{
+  font-size:3rem;font-weight:800;text-align:center;margin:8px 0 2px;color:#f0abfc;
+  text-shadow:0 0 12px rgba(240,171,252,.9),0 0 40px rgba(192,38,211,.7);
+  animation:pointsglow 2.2s ease-in-out infinite;
+}
+@keyframes pointsglow{0%,100%{text-shadow:0 0 12px rgba(240,171,252,.9),0 0 40px rgba(192,38,211,.7)}50%{text-shadow:0 0 22px rgba(240,171,252,1),0 0 70px rgba(192,38,211,1)}}
+.msg{min-height:22px;font-size:.95rem;margin-top:8px}
+.msg.ok{color:var(--ok);text-shadow:0 0 8px rgba(52,211,153,.6)}
+.msg.err{color:var(--err);text-shadow:0 0 8px rgba(251,113,133,.6)}
+/* КЛИКЕР — заметно крупнее */
+.clicker-btn{
+  width:100%;padding:34px;font-size:1.9rem;font-weight:800;letter-spacing:3px;
+  border:3px solid rgba(240,171,252,.7);border-radius:20px;cursor:pointer;color:#fff;
+  background:radial-gradient(circle at 30% 30%,#c084fc,#7c3aed 75%);
+  box-shadow:0 0 26px rgba(192,38,211,.55), inset 0 -4px 14px rgba(0,0,0,.4);
+  text-shadow:0 0 12px rgba(255,255,255,.8);
+  transition:transform .08s, box-shadow .2s;
+  animation:clickpulse 2.4s ease-in-out infinite;
+  min-height:96px;
+}
+@keyframes clickpulse{
+  0%,100%{box-shadow:0 0 26px rgba(192,38,211,.55), inset 0 -4px 14px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 40px rgba(217,70,239,.85), inset 0 -4px 14px rgba(0,0,0,.4)}
+}
+.clicker-btn:active{transform:scale(.94);animation:none;box-shadow:0 0 60px rgba(240,171,252,1)}
+.clicker-btn:disabled{filter:grayscale(.7);opacity:.6;cursor:not-allowed;animation:none}
+.clicks-line{text-align:center;margin-top:10px;font-size:1.1rem}
+.clicks-line b{color:#f0abfc;font-size:1.4rem;text-shadow:0 0 10px rgba(240,171,252,.8)}
+.mult-badge{text-align:center;margin-top:6px;font-size:1rem;color:#fde047;font-weight:700;
+  text-shadow:0 0 10px rgba(253,224,71,.8)}
+.ban-line{text-align:center;margin-top:4px;font-size:.95rem;color:#fb7185;font-weight:600;
+  text-shadow:0 0 10px rgba(251,113,133,.8)}
+.plus1{
+  position:fixed;pointer-events:none;font-weight:800;color:#f0abfc;font-size:28px;z-index:99;
+  transform:translate(-50%,-50%);animation:rise .9s ease-out forwards;
+  text-shadow:0 0 14px rgba(240,171,252,1),0 0 30px rgba(192,38,211,.9);
+}
+@keyframes rise{to{transform:translate(-50%,-170%);opacity:0}}
+.item{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;
+  background:rgba(16,8,32,.55);
+  box-shadow:0 0 10px rgba(139,92,246,.18);
+}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--muted);
+  border-radius:10px;padding:10px 15px;font-size:.95rem;transition:all .2s}
+.tab:hover{color:#fff;box-shadow:0 0 10px rgba(192,38,211,.4)}
+.tab.active{background:linear-gradient(135deg,var(--neon),var(--accent2));color:#fff;border-color:transparent;
+  box-shadow:0 0 14px rgba(192,38,211,.75)}
+.shop-item{
+  display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
+  padding:14px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;
+  background:rgba(16,8,32,.55);
+  box-shadow:0 0 10px rgba(139,92,246,.18);
+  transition:box-shadow .25s,transform .15s;
+}
+.shop-item:hover{box-shadow:0 0 22px rgba(192,38,211,.5);transform:translateY(-2px)}
+.shop-item img{width:96px;height:96px;object-fit:cover;border-radius:10px;
+  border:1px solid var(--line);flex:none;box-shadow:0 0 12px rgba(192,38,211,.4)}
+.shop-info{flex:1;min-width:170px}
+.shop-info .name{font-weight:700;font-size:1.1rem;text-shadow:0 0 8px rgba(240,171,252,.5)}
+.shop-info .descr{color:var(--muted);font-size:.9rem;margin:4px 0}
+.shop-info .prices{font-size:.95rem;margin-top:4px}
+.shop-buy{align-self:center}
+#toastWrap{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{
+  background:rgba(20,10,40,.96);border:1px solid rgba(240,171,252,.5);border-radius:12px;
+  padding:12px 20px;font-size:1rem;
+  box-shadow:0 0 18px rgba(192,38,211,.6);
+  animation:tin .25s ease-out;
+}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* Легенда кнопок в админке */
+.legend{margin-top:14px;padding:14px;border:1px dashed var(--line);border-radius:12px}
+.legend b{color:#f0abfc}
+.legend div{margin:5px 0;font-size:.9rem}
 </style>
 </head>
 <body>
 
-<div class="neon-grid"></div>
-<div class="neon-grid2"></div>
-<div class="neon-lines"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-<div class="neon-beams"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-<div class="neon-particles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-<div class="neon-orb"></div>
-<div class="neon-orb2"></div>
-<div class="neon-orb3"></div>
-<div class="scanlines"></div>
+<header class="topbar">
+  <div class="brand">✦ DEDSECK</div>
+  <nav id="nav" class="row hidden">
+    <button class="btn ghost navbtn" data-page="cabinet" title="Ваш профиль: баланс, кликер, вывод, история">👤 Кабинет</button>
+    <button class="btn ghost navbtn" data-page="shop" title="Покупка товаров и множителей за баллы">🛍 Магазин</button>
+    <button class="btn ghost navbtn hidden" id="navAdmin" data-page="admin" title="Только для владельца: управление всеми аккаунтами">🛡 Админка</button>
+    <button class="btn ghost" id="btnLogout" title="Выйти из аккаунта и вернуться на экран входа">Выйти</button>
+  </nav>
+</header>
 
-<!-- ЭКРАН ВХОДА -->
-<div id="authScreen" class="center">
-  <div>
-    <h1>DEDSECK</h1>
-    <div class="sub" id="authSub">Вход по нику и паролю</div>
-    <div class="card">
-      <div id="loginBlock">
-        <label>Логин</label>
-        <input id="nick" placeholder="логин" autocomplete="off">
-        <label>Пароль</label>
-        <input id="pass" type="password" placeholder="пароль" autocomplete="new-password">
-        <button id="btnLogin" class="primary-pulse" style="width:100%">Войти</button>
-        <div id="authMsg" class="err"></div>
+<main>
+  <!-- ВХОД -->
+  <section id="pageAuth">
+    <div class="panel">
+      <h2>Вход в DEDSECK</h2>
+      <label>Ник</label><input id="authNick" placeholder="Ваш ник" maxlength="20">
+      <label>Пароль</label><input id="authPass" type="password" placeholder="••••••••">
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="btnLogin" title="Войти под существующим ником и паролем">Войти</button>
+        <button class="btn ghost" id="btnRegister" title="Создать новый аккаунт по нику и паролю">Регистрация</button>
       </div>
-      <div id="lockBlock" class="hidden">
-        <div class="locktext">🔒 Сайт заблокирован владельцем.<br>Для активации введите код:</div>
-        <input id="lockCode" inputmode="numeric" placeholder="Код активации">
-        <button id="btnUnlock" style="width:100%">Активировать</button>
-        <div id="lockMsg" class="err"></div>
-      </div>
-      <div id="alarmBlock" class="hidden">
-        <div class="alarmtext">⚠️ Подозрительная активность.<br>Введите код безопасности:</div>
-        <input id="alarmCode" inputmode="numeric" placeholder="Код безопасности">
-        <button id="btnAlarmOff" style="width:100%">Снять тревогу</button>
-        <div id="alarmMsg" class="err"></div>
-      </div>
-      <button id="btnShopAuth" class="gray" style="width:100%">🛒 Магазин</button>
-      <button id="btnEnterAsAuth" class="gray" style="width:100%">🔀 Войти как…</button>
-      <button id="btnGuestReg" class="gray" style="width:100%">👤 Регистрация гостя</button>
+      <button class="btn gray block" id="btnGuest" title="Войти без регистрации: гостевой аккаунт с гостевыми баллами" style="margin-top:12px">Войти как гость</button>
+      <div id="authMsg" class="msg"></div>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- ПРИЛОЖЕНИЕ -->
-<div id="app" class="hidden">
-  <div class="topbar">
-    <span class="brand">DEDSECK</span>
-    <span id="whoami" class="small"></span>
-    <button id="btnShopPage" class="gray">🛒 Магазин</button>
-    <button id="btnCabinet" class="gray">👤 Кабинет</button>
-    <button id="btnNotifView" class="gray">🔔 Уведомления</button>
-    <button id="btnLogout" class="gray">Выйти</button>
-  </div>
+  <!-- БАН -->
+  <section id="pageBan" class="hidden">
+    <div class="panel" style="text-align:center">
+      <h2>⛔ Доступ закрыт</h2>
+      <div class="small" id="banInfo" style="margin:12px 0;font-size:1rem"></div>
+      <button class="btn block" id="btnBanLogout" title="Выйти из заблокированного аккаунта">Выйти из аккаунта</button>
+    </div>
+  </section>
 
-  <!-- КАБИНЕТ УЧАСТНИКА (СОТРУДНИКА) -->
-  <div id="pageCabinet" class="wrap">
+  <!-- КАБИНЕТ -->
+  <section id="pageCabinet" class="hidden">
     <div class="panel">
       <h3>👤 Кабинет участника</h3>
-      <div class="small">Мой баланс</div>
+      <div class="small">Ник: <b id="pNick">—</b></div>
+      <div class="small" style="text-align:center">Мой баланс</div>
       <div class="points" id="pointsBig">0</div>
-      <div class="note">💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b></div>
-      <button id="btnTopup" class="okbtn" style="width:100%">💰 Пополнить</button>
-      <div id="topMsg" class="ok"></div>
+      <div class="mult-badge hidden" id="multBadge"></div>
       <hr class="divider">
-      <div class="small" style="margin-bottom:6px">🧾 История покупок</div>
+      <div class="small" style="margin-bottom:8px"><b>🖱 Кликер:</b> каждый клик прибавляет клики (с множителем — больше). Владелец видит ваши клики.</div>
+      <button id="btnClicker" class="clicker-btn" title="Нажимайте — клики копятся на балансе кликов">КЛИК!</button>
+      <div class="clicks-line">Клики: <b id="clicksCount">0</b></div>
+      <hr class="divider">
+      <div class="small" style="margin-bottom:6px"><b>💰 Вывод баллов:</b> заявка уйдёт владельцу, баллы спишутся после его подтверждения.</div>
+      <div class="row">
+        <input id="wdAmount" type="number" min="1" placeholder="Сколько баллов" style="max-width:200px">
+        <button id="btnWithdraw" class="btn gray" title="Отправить владельцу заявку на вывод указанных баллов">Вывести</button>
+      </div>
+      <div id="wdMsg" class="msg"></div>
+      <hr class="divider">
+      <div class="small" style="margin-bottom:8px">🧾 История покупок</div>
       <div id="histList"><div class="small">Покупок пока нет</div></div>
+      <hr class="divider">
+      <div class="small" style="margin-bottom:6px"><b>✉️ Сообщение владельцу:</b></div>
+      <textarea id="ownerMsgText" rows="2" placeholder="Напишите сообщение владельцу"></textarea>
+      <button id="btnSendToOwner" class="btn gray block" style="margin-top:10px" title="Отправить текст сообщения владельцу проекта">Отправить владельцу</button>
+      <div id="ownerMsgStatus" class="msg"></div>
     </div>
-
-    <!-- АДМИНКА -->
-    <div id="adminSection" class="hidden">
-      <div class="panel">
-        <button id="btnMembers" style="width:100%;font-size:16px;padding:14px">👥 Участники</button>
-      </div>
-      <div id="membersBlock" class="panel hidden">
-        <h3>👥 Участники (таблица members)</h3>
-        <div class="small" style="margin-bottom:6px">Создать аккаунт участника</div>
-        <div class="row">
-          <input id="newNick" placeholder="Ник нового участника">
-          <input id="newPass" placeholder="Пароль (мин. 6 символов)">
-          <button id="btnCreate">Создать</button>
-        </div>
-        <div id="createMsg" class="ok"></div>
-        <hr class="divider">
-        <div class="row">
-          <button id="btnReload" class="gray" style="margin-top:0">🔄 Обновить список</button>
-        </div>
-        <div class="small" style="margin:8px 0 2px">Нажми на участника: баллы, кик, бан, удаление, запросы на вывод</div>
-        <div id="accList"></div>
-        <hr class="divider">
-        <div class="small" style="margin-bottom:4px"><b>Массово — сразу всем:</b></div>
-        <div class="small" style="margin-bottom:2px">Начислить всем по:</div>
-        <div class="row">
-          <input id="massAddAmount" type="number" min="1" value="10" style="max-width:110px">
-          <button id="btnMassAdd">＋ Начислить всем</button>
-        </div>
-        <div class="small" style="margin:6px 0 2px">Списать у всех по:</div>
-        <div class="row">
-          <input id="massSubAmount" type="number" min="1" value="10" style="max-width:110px">
-          <button id="btnMassSub" class="danger">－ Списать у всех</button>
-        </div>
-        <div id="massMsg" class="ok"></div>
-      </div>
-
-      <div class="panel">
-        <button id="btnGuests" style="width:100%;font-size:16px;padding:14px">👤 Гости</button>
-      </div>
-      <div id="guestsBlock" class="panel hidden">
-        <h3>👤 Гости (таблица guest_accounts)</h3>
-        <div class="small" style="margin-bottom:4px"><b>Запросы гостей на баллы:</b></div>
-        <div id="guestReqsList"></div>
-        <hr class="divider">
-        <div class="small" style="margin-bottom:4px"><b>Гости:</b> нажми на гостя — баллы, бан, удаление.</div>
-        <button id="btnGuestsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
-        <div id="guestList"></div>
-      </div>
-
-      <div class="panel">
-        <button id="btnWithdrawals" style="width:100%;font-size:16px;padding:14px">💰 Заявки на вывод</button>
-      </div>
-      <div id="wdBlock" class="panel hidden">
-        <h3>💰 Заявки на вывод</h3>
-        <button id="btnWdReload" class="gray" style="margin-top:0">🔄 Обновить</button>
-        <div id="wdList"></div>
-      </div>
-
-      <div class="panel">
-        <button id="btnBuyReqs" style="width:100%;font-size:16px;padding:14px">🛒 Хотят купить</button>
-      </div>
-      <div id="buyReqsBlock" class="panel hidden">
-        <h3>🛒 Хотят купить</h3>
-        <div class="small" style="margin-bottom:4px">Заявки на покупку: имя, фамилия, телефон, способ оплаты.</div>
-        <button id="btnBuyReqsReload" class="gray" style="margin-top:0">🔄 Обновить</button>
-        <div id="buyReqList"></div>
-      </div>
-
-      <div class="panel">
-        <button id="btnAddProductOpen" style="width:100%;font-size:16px;padding:14px">📦 Добавить товар</button>
-      </div>
-      <div id="addProductBlock" class="panel hidden">
-        <h3>📦 Добавить товар</h3>
-        <div id="dropZone">
-          Перетащите фото сюда или нажмите, чтобы выбрать<br>
-          <span class="small">(с телефона — из галереи, с ПК — клик, перетащить или Ctrl+V)</span>
-          <input id="photoInput" type="file" accept="image/*" style="display:none">
-        </div>
-        <div id="photoPreview"></div>
-        <label>Название</label><input id="pTitle" placeholder="Название товара">
-        <label>Описание</label><input id="pDesc" placeholder="Описание">
-        <label>Цена в рублях</label><input id="pPriceRub" type="number" min="0" step="0.01" placeholder="Цена в рублях">
-        <div class="row">
-          <input id="pPrice" type="number" min="1" placeholder="Цена в баллах DEDSECK">
-          <input id="pGuestPrice" type="number" min="1" placeholder="Цена в баллах гостя">
-        </div>
-        <div class="row">
-          <input id="pQty" type="number" min="1" value="1" placeholder="Количество" style="max-width:140px">
-        </div>
-        <button id="btnAddProduct" class="primary-pulse">Создать товар</button>
-        <div id="addProdMsg" class="ok"></div>
-      </div>
-
-      <div class="panel">
-        <h3>🔑 Пароль владельца</h3>
-        <div class="small" style="margin-bottom:4px">После смены вход — по новому паролю.</div>
-        <input id="newAdminPass" type="password" placeholder="Новый пароль (мин. 6 символов)">
-        <button id="btnAdminPass">Сменить пароль</button>
-        <div id="adminPassMsg" class="ok"></div>
-      </div>
-
-      <div class="panel">
-        <h3>⏻ Сервер</h3>
-        <div class="small" style="margin-bottom:4px">Пин-код выключает сайт для всех.</div>
-        <button id="btnServer">⏻ Выключить сервер (пин-код)</button>
-        <div id="serverMsg" class="ok"></div>
-        <hr class="divider">
-        <div class="small" style="margin-bottom:4px">Таймер доп-кода: 15 секунд на ввод кода при входе.</div>
-        <button id="btnTimer" class="gray">⏱ Включить таймер доп-кода (15 с)</button>
-        <div id="timerMsg" class="ok"></div>
-        <hr class="divider">
-        <div class="small" style="margin-bottom:4px">Режим слежки: открытая панель разработчика (F12) включает тревогу.</div>
-        <button id="btnDevWatch" class="gray">🕵 Режим слежки за кодом: вкл/выкл</button>
-        <div id="devMsg" class="ok"></div>
-      </div>
-
-      <div class="panel">
-        <h3>🛡 Журнал изменений</h3>
-        <div class="small" style="margin-bottom:4px">Кто и что менял в аккаунтах. Читает только владелец.</div>
-        <button id="btnAudit" class="gray" style="margin-top:0">🔄 Обновить журнал</button>
-        <div id="auditList"></div>
-      </div>
-
-      <div class="panel">
-        <h3>📣 Разослать</h3>
-        <label>Кому</label>
-        <select id="sendTo"><option value="all">Всем</option></select>
-        <label>Текст</label>
-        <textarea id="sendText" rows="2" placeholder="Сообщение для участников"></textarea>
-        <button id="btnSend">Отправить</button>
-        <div id="sendMsg" class="ok"></div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- МАГАЗИН -->
-  <div id="pageShop" class="wrap hidden">
+  <section id="pageShop" class="hidden">
     <div class="panel">
-      <h3>🛒 Магазин DEDSECK</h3>
-      <div class="small">Все товары и цены. Нажми на товар — откроется всё о нём и кнопки покупки.</div>
-      <button id="btnShopReload" class="gray" style="margin-top:8px">🔄 Обновить</button>
-    </div>
-    <div class="panel">
-      <h3>🛍 Товары</h3>
-      <div id="productList"></div>
-    </div>
-  </div>
-
-  <!-- КАБИНЕТ ГОСТЯ -->
-  <div id="pageGuest" class="wrap hidden">
-    <div class="panel">
-      <h3>👤 Кабинет гостя</h3>
-      <div id="guestLoginBlock">
-        <div class="small" style="margin-bottom:8px">Войдите своим ником и паролем гостя или зарегистрируйтесь.</div>
-        <label>Логин гостя</label><input id="geNick2" autocomplete="off">
-        <label>Пароль гостя</label><input id="gePass2" type="password" autocomplete="new-password">
-        <button id="btnGuestLogin2" class="okbtn primary-pulse" style="width:100%">Войти как гость</button>
-        <div id="geMsg2" class="err"></div>
-        <button id="btnGuestRegOpen" class="gray" style="width:100%">👤 Регистрация гостя</button>
+      <h3>🛍 Магазин</h3>
+      <div class="small" style="margin-bottom:12px">Баланс: <b id="shopPoints">0</b> <span id="shopCur"></span></div>
+      <div class="tabs">
+        <button class="tab active" data-shoptab="goods" title="Обычные товары из магазина">Товары</button>
+        <button class="tab" data-shoptab="mults" title="Временные усиления кликера">⚡ Множители кликов</button>
       </div>
-      <div id="guestCabinet" class="hidden">
-        <div class="small">Мой баланс</div>
-        <div class="points" id="guestPoints">0</div>
-        <div class="note">💡 <b>При покупке баллов: 1 рубль = 10 баллов.</b></div>
-        <button id="btnGuestTopup" style="width:100%">💰 Пополнить</button>
-        <div id="guestTopMsg" class="ok"></div>
+      <div id="shopGoods"></div>
+      <div id="shopMults" class="hidden"></div>
+      <div id="shopMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- АДМИНКА -->
+  <section id="pageAdmin" class="hidden">
+    <div class="panel">
+      <h3>🛡 Админ-панель polostyanoy</h3>
+      <div class="tabs">
+        <button class="tab active" data-tab="membersBlock" title="Зарегистрированные участники">Участники</button>
+        <button class="tab" data-tab="guestsBlock" title="Гостевые аккаунты">Гости</button>
+        <button class="tab" data-tab="wdBlock" title="Заявки участников на вывод баллов">Заявки на вывод</button>
+        <button class="tab" data-tab="goodsBlock" title="Добавление и удаление товаров магазина">Товары магазина</button>
+        <button class="tab" data-tab="msgsBlock" title="Сообщения от участников">Сообщения</button>
+        <button class="tab" data-tab="logBlock" title="История действий владельца">Журнал</button>
+      </div>
+      <div id="membersBlock">
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn danger tiny" id="btnZeroAll" title="Сбросить счётчик кликов сразу у всех участников и гостей">🖱 Обнулить клики у всех</button>
+          <button class="btn ghost tiny" id="btnReloadAdmin" title="Заново загрузить списки и заявки">🔄 Обновить</button>
+        </div>
+        <div id="membersList"></div>
+        <div class="legend">
+          <b>Что делают кнопки у каждого участника:</b>
+          <div>💰 <b>Поле + «Уст.»</b> — установить точное число баллов у участника (0 и больше).</div>
+          <div><b>+10</b> — выдать 10 баллов. <b>−10</b> — снять 10 баллов (ниже нуля не уйдёт).</div>
+          <div>🖱 <b>0</b> — обнулить счётчик кликов участника.</div>
+          <div>⚡ <b>×1</b> — сбросить активный множитель кликов участника.</div>
+          <div>⛔ <b>Бан</b> — забанить на минуты из соседнего поля (запросит причину): участник не сможет кликать, покупать и выводить.</div>
+          <div>∞ <b>Бан навсегда</b> — постоянный бан (с подтверждением и причиной).</div>
+          <div>🥾 <b>Кик</b> — короткий бан на 5 минут как предупреждение.</div>
+          <div><b>Снять</b> — разбанить участника полностью.</div>
+          <div>🗑 <b>Удалить</b> — стереть аккаунт целиком (баллы, клики, покупки, вход). Безвозвратно, с подтверждением.</div>
+        </div>
+      </div>
+      <div id="guestsBlock" class="hidden"><div id="guestsList"></div></div>
+      <div id="wdBlock" class="hidden">
+        <div id="wdAdminList"></div>
+        <div class="legend">
+          <b>Что делают кнопки:</b>
+          <div>✔ <b>Одобрить</b> — списать баллы и закрыть заявку. Если баллов уже не хватает, заявка автоматически отклонится.</div>
+          <div>✖ <b>Отклонить</b> — отказать без списания баллов.</div>
+        </div>
+      </div>
+      <div id="goodsBlock" class="hidden">
+        <h3 style="margin-top:4px">➕ Добавить товар</h3>
+        <label>Название</label><input id="giName" placeholder="Название товара" maxlength="60">
+        <label>Описание</label><input id="giDescr" placeholder="Короткое описание" maxlength="200">
+        <label>Ссылка на фото (URL)</label><input id="giPhoto" placeholder="https://... или пусто">
+        <div class="row">
+          <div style="flex:1;min-width:110px"><label>Цена, ₽</label><input id="giRub" type="number" min="0" placeholder="0"></div>
+          <div style="flex:1;min-width:110px"><label>Баллы гостя</label><input id="giGuest" type="number" min="0" placeholder="0"></div>
+          <div style="flex:1;min-width:110px"><label>Баллы DEDSECK</label><input id="giDs" type="number" min="0" placeholder="0"></div>
+        </div>
+        <button class="btn block" id="btnAddGood" style="margin-top:14px" title="Создать товар: он сразу появится в магазине у всех">Добавить товар</button>
+        <div id="giMsg" class="msg"></div>
         <hr class="divider">
-        <div class="small" style="margin-bottom:6px">🧾 История покупок</div>
-        <div id="guestHistList"></div>
-        <button id="btnGuestToShop" class="gray" style="width:100%">🛒 В магазин</button>
+        <h3>📦 Список товаров</h3>
+        <div id="goodsList"></div>
+        <div class="legend">
+          <b>Что делают кнопки:</b>
+          <div>✖ <b>Удалить</b> — убрать товар из магазина (с подтверждением).</div>
+        </div>
       </div>
+      <div id="msgsBlock" class="hidden"><div id="msgsAdminList"></div></div>
+      <div id="logBlock" class="hidden"><div id="logList"></div></div>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
-<!-- КАРТОЧКА ТОВАРА -->
-<div id="buyModal" class="overlay hidden">
-  <div class="card" style="max-height:92vh;overflow:auto">
-    <div class="row" style="justify-content:space-between;margin-bottom:6px">
-      <h3 style="margin:0" id="buyTitle">Покупка</h3>
-      <button id="btnBuyCloseX" class="gray" style="padding:6px 12px">✕</button>
-    </div>
-    <div id="buyInfo"></div>
-    <div id="buyMethodBox"></div>
-    <div id="buyNameBlock" class="hidden">
-      <label>Имя</label><input id="buyName">
-      <label>Фамилия</label><input id="buySurname">
-      <label>Номер телефона</label><input id="buyPhone" inputmode="tel" placeholder="+7 ...">
-    </div>
-    <button id="btnBuyConfirm" class="hidden primary-pulse" style="width:100%">Отправить заявку</button>
-    <button id="btnBuyCancel" class="gray" style="width:100%">Закрыть</button>
-    <div id="buyMsg" class="ok"></div>
-  </div>
-</div>
+<div id="toastWrap"></div>
 
-<!-- ВОЙТИ КАК -->
-<div id="enterAsModal" class="overlay hidden">
-  <div class="card">
-    <h3 style="color:#c084fc;margin-bottom:8px">🔀 Войти как</h3>
-    <button id="btnAsGuest" style="width:100%">👤 Как гость</button>
-    <div class="small" style="text-align:center;margin:4px 0">Баланс, история, пополнение.<br>1 рубль = 10 баллов.</div>
-    <button id="btnAsEmployee" class="gray" style="width:100%">💼 Как участник</button>
-    <div class="small" style="text-align:center;margin:4px 0">Вход по логину и паролю —<br>магазин и кабинет участника.</div>
-    <button id="btnEnterAsClose" class="gray" style="width:100%">✕ Закрыть</button>
-  </div>
-</div>
-
-<!-- РЕГИСТРАЦИЯ ГОСТЯ -->
-<div id="guestRegModal" class="overlay hidden">
-  <div class="card">
-    <h3 style="color:#c084fc;margin-bottom:8px">👤 Регистрация гостя</h3>
-    <label>Логин гостя</label><input id="gNick" autocomplete="off">
-    <label>Пароль (мин. 6 символов)</label><input id="gPass" type="password">
-    <button id="btnGuestCreate" class="okbtn primary-pulse" style="width:100%">Зарегистрироваться</button>
-    <div id="gMsg" class="ok"></div>
-    <button id="btnGuestRegClose" class="gray" style="width:100%">✕ Закрыть</button>
-  </div>
-</div>
-
-<!-- УВЕДОМЛЕНИЯ -->
-<div id="notifModal" class="overlay hidden">
-  <div class="card" style="width:420px">
-    <div class="row" style="justify-content:space-between;margin-bottom:6px">
-      <h3 style="margin:0">🔔 Уведомления <span id="notifBadge"></span></h3>
-      <button id="btnNotifClose" class="gray" style="padding:6px 12px">✕</button>
-    </div>
-    <div id="notifList" style="max-height:55vh;overflow:auto;padding-right:4px"></div>
-    <div class="row" style="margin-top:10px">
-      <button id="btnReadMark" class="gray" style="font-size:13px">Отметить прочитанным</button>
-      <button id="btnNotifOn" class="gray" style="font-size:13px">🔊 Вкл. уведомления</button>
-    </div>
-  </div>
-</div>
-
-<!-- ДОП-ПРОВЕРКА -->
-<div id="pinOverlay" class="overlay hidden">
-  <div class="card" style="width:320px">
-    <div class="locktext">🔐 Дополнительная проверка</div>
-    <input id="pinInput" inputmode="numeric" placeholder="Введите код">
-    <button id="btnPinOk" style="width:100%">Подтвердить</button>
-    <div id="pinMsg" class="err"></div>
-    <div id="pinTimerText" class="small" style="text-align:center;margin-top:6px"></div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-(function () {
+(() => {
+  // ====== НАСТРОЙКИ ======
+  const SB_URL = 'https://hpcjtximqeuqtlidkacv.supabase.co';
+  const SB_KEY = 'sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A';
+  const OWNER_NICK = 'polostyanoy';      // админ-вкладка открывается под этим ником
+  const FAKE_DOMAIN = 'dedseck.krr';     // НЕ МЕНЯТЬ после регистрации аккаунтов
+  // ===============================================
 
-const supabase = window.supabase.createClient(
-  "https://hpcjtximqeuqtlidkacv.supabase.co",
-  "sb_publishable_PHPrQs4SWGAbALyGONePyA_paI6vt4A"
-);
-const ADMIN_EMAIL = 'polostyanoy@mysait.local';
-const PIN_CHANCE = 0.35;
-const ONLINE_MS = 35000;
-const TBL_MEMBERS = 'members';
-const TBL_GUESTS = 'guest_accounts';
-const tableFor = isGuest => isGuest ? TBL_GUESTS : TBL_MEMBERS;
+  const emailOf = nick => nick.trim().toLowerCase() + '@' + FAKE_DOMAIN;
+  const ownerEmail = emailOf(OWNER_NICK);
 
-let me = null, myNick = '', myTable = TBL_MEMBERS, isAdmin = false, isGuestAcc = false, savedCreds = null;
-let pollTimer = null, pollLast = new Date().toISOString();
-let notifCache = [], unreadCount = 0, seen = new Set();
-let members = [], guests = [], wdCache = [];
-let selectedId = null, selectedGuestId = null;
-let membersOpen = false, guestsOpen = false, wdOpen = false, addProductOpen = false, buyReqsOpen = false;
-let stopped = false, serverOff = false, timerArmed = false;
-let alarmOn = false, devWatchOn = false, devReported = false;
-let lastListSignature = '', lastGuestSignature = '';
-let shopCache = [], prodMap = {}, pendingPhoto = null, currentBuy = null, pendingPage = null;
-let curPage = 'shop';
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+  const $  = s => document.querySelector(s);
+  const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const dt = s => new Date(s).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const methodLabel = m => m === 'kingroom' ? 'рубли' : (m === 'guest' ? 'баллы гостя' : 'DEDSECK');
-
-let toastTimer = null;
-function toast(text) {
-  const t = $('toast');
-  t.textContent = text; t.style.display = 'block';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.style.display = 'none', 5000);
-}
-function beep() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = 880; g.gain.value = 0.08;
-    o.start(); o.stop(ctx.currentTime + 0.18);
-    setTimeout(() => ctx.close(), 500);
-  } catch (e) {}
-}
-function fmtLeft(ms) {
-  const totalMin = Math.max(1, Math.round(ms / 60000));
-  const h = Math.floor(totalMin / 60), m = totalMin % 60;
-  if (h > 0) return h + ' ч ' + (m ? m + ' мин' : '');
-  return m + ' мин';
-}
-function isOnline(a) { return a.last_seen && (Date.now() - new Date(a.last_seen).getTime()) < ONLINE_MS; }
-function lastSeenText(a) {
-  if (isOnline(a)) return 'в сети';
-  if (!a.last_seen) return 'ни разу не заходил';
-  const mins = Math.floor((Date.now() - new Date(a.last_seen).getTime()) / 60000);
-  if (mins < 60) return 'был ' + Math.max(1, mins) + ' мин назад';
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return 'был ' + hours + ' ч назад';
-  return 'был ' + Math.floor(hours / 24) + ' дн назад';
-}
-function isBanned(a) { return a.banned_until && new Date(a.banned_until).getTime() > Date.now(); }
-
-async function rowForUserId(userId) {
-  let { data: r } = await supabase.from(TBL_MEMBERS).select('*').eq('user_id', userId).maybeSingle();
-  if (r) return { row: r, table: TBL_MEMBERS };
-  const g = await supabase.from(TBL_GUESTS).select('*').eq('user_id', userId).maybeSingle();
-  return { row: g.data, table: TBL_GUESTS };
-}
-
-// ===== НАСТРОЙКИ СЕРВЕРА =====
-async function getSetting(key) {
-  try {
-    const { data } = await supabase.from('settings').select('value').eq('key', key).maybeSingle();
-    return data ? data.value : null;
-  } catch (e) { return null; }
-}
-async function isServerOff() { return (await getSetting('site_off')) === 'true'; }
-async function isAlarm() { return (await getSetting('alarm')) === 'true'; }
-async function timerCheck() {
-  try { const { data } = await supabase.rpc('pin_timer_check'); return !!data; }
-  catch (e) { return await isServerOff(); }
-}
-async function reportFail(kind) {
-  try { await supabase.rpc('report_fail', { p_kind: kind }); } catch (e) {}
-  const a = await isAlarm();
-  if (a && !alarmOn) { alarmOn = true; forceAlarmScreen(); }
-}
-
-let alarmWatchTimer = null;
-function startAlarmWatch() {
-  if (alarmWatchTimer) return;
-  alarmWatchTimer = setInterval(async () => {
-    if (!alarmOn || me || stopped) return;
-    const a = await isAlarm();
-    if (!a) { alarmOn = false; renderAuthScreen(); toast('Тревога снята владельцем — можно входить'); }
-  }, 5000);
-}
-
-function renderAuthScreen() {
-  if (serverOff) {
-    $('loginBlock').classList.add('hidden'); $('alarmBlock').classList.add('hidden');
-    $('lockBlock').classList.remove('hidden');
-    $('authSub').textContent = 'Сайт заблокирован';
-    $('lockCode').value = ''; $('lockMsg').textContent = '';
-  } else if (alarmOn) {
-    $('loginBlock').classList.add('hidden'); $('lockBlock').classList.add('hidden');
-    $('alarmBlock').classList.remove('hidden');
-    $('authSub').textContent = 'Режим тревоги';
-    $('alarmCode').value = ''; $('alarmMsg').textContent = '';
-  } else {
-    $('lockBlock').classList.add('hidden'); $('alarmBlock').classList.add('hidden');
-    $('loginBlock').classList.remove('hidden');
-    $('authSub').textContent = 'Вход по нику и паролю';
+  function toast(t){
+    const el = document.createElement('div');
+    el.className = 'toast'; el.textContent = t;
+    $('#toastWrap').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
   }
-}
+  function msg(id, text, cls){ const m = $(id); m.textContent = text; m.className = 'msg ' + (cls||''); }
 
-async function forceAlarmScreen() {
-  stopped = true;
-  clearInterval(pollTimer);
-  try { await supabase.auth.signOut(); } catch (e) {}
-  $('app').classList.add('hidden');
-  $('authScreen').classList.remove('hidden');
-  renderAuthScreen();
-  stopped = false;
-}
-
-async function tryUnlock() {
-  const c = $('lockCode').value.trim();
-  const m = $('lockMsg');
-  m.textContent = ''; m.classList.remove('shake');
-  if (!c) { m.textContent = 'Введите код'; void m.offsetWidth; m.classList.add('shake'); return; }
-  let ok = false, err = '';
-  try { const { data, error } = await supabase.rpc('site_unlock', { p_code: c }); ok = !!data; if (error) err = error.message; }
-  catch (e) { err = e.message; }
-  if (!ok) {
-    m.textContent = err ? ('Ошибка: ' + err) : 'Неверный код';
-    void m.offsetWidth; m.classList.add('shake');
-    await reportFail('unlock');
-    return;
+  function showPage(name){
+    document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+    $('#page' + name[0].toUpperCase() + name.slice(1)).classList.remove('hidden');
+    document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.page === name));
+    if (name === 'cabinet') refreshProfile();
+    if (name === 'shop')    loadShop();
+    if (name === 'admin')   loadAdmin();
   }
-  serverOff = false;
-  toast('Сайт разблокирован — входите');
-  renderAuthScreen();
-}
-$('btnUnlock').onclick = tryUnlock;
-$('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+  document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => showPage(b.dataset.page));
 
-async function alarmOff() {
-  const c = $('alarmCode').value.trim();
-  const m = $('alarmMsg');
-  m.textContent = ''; m.classList.remove('shake');
-  if (!c) { m.textContent = 'Введите код'; void m.offsetWidth; m.classList.add('shake'); return; }
-  let ok = false, err = '';
-  try { const { data, error } = await supabase.rpc('alarm_deactivate', { p_code: c }); ok = !!data; if (error) err = error.message; }
-  catch (e) { err = e.message; }
-  if (!ok) {
-    m.textContent = err ? ('Ошибка: ' + err) : 'Неверный код безопасности';
-    void m.offsetWidth; m.classList.add('shake');
-    await reportFail('alarm_code');
-    return;
-  }
-  alarmOn = false;
-  toast('Тревога снята — входите');
-  renderAuthScreen();
-}
-$('btnAlarmOff').onclick = alarmOff;
-$('alarmCode').addEventListener('keydown', e => { if (e.key === 'Enter') alarmOff(); });
-
-// ===== ДОП-ПРОВЕРКА (ПИН) =====
-function showPinOverlay(deadlineMs) {
-  return new Promise(resolve => {
-    const ov = $('pinOverlay');
-    ov.classList.remove('hidden');
-    const inp = $('pinInput'), msg = $('pinMsg'), tt = $('pinTimerText');
-    inp.value = ''; msg.textContent = ''; tt.textContent = '';
-    inp.focus();
-    let done = false, iv = null;
-    const finish = s => { if (done) return; done = true; clearInterval(iv); ov.classList.add('hidden'); resolve(s); };
-    $('btnPinOk').onclick = async () => {
-      const c = inp.value.trim();
-      if (!c) { msg.textContent = 'Введите код'; void msg.offsetWidth; msg.classList.add('shake'); return; }
-      const { data: okv } = await supabase.rpc('verify_extra_pin', { p_code: c });
-      if (!okv) await reportFail('pin');
-      finish(okv ? 'ok' : 'wrong');
-    };
-    inp.onkeydown = e => { if (e.key === 'Enter') $('btnPinOk').onclick(); };
-    iv = setInterval(async () => {
-      const left = Math.ceil((deadlineMs - Date.now()) / 1000);
-      if (left <= 0) {
-        clearInterval(iv); done = true; ov.classList.add('hidden');
-        try { await supabase.rpc('pin_timer_check'); } catch (e) {}
-        await supabase.auth.signOut();
-        serverOff = true; renderAuthScreen();
-        toast('⏱ Время на ввод кода истекло — сайт заблокирован');
-        resolve('expired');
-        return;
-      }
-      tt.textContent = '⏱ Осталось: ' + left + ' с';
-    }, 250);
+  document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+    if (b.dataset.shoptab){
+      document.querySelectorAll('[data-shoptab]').forEach(t => t.classList.remove('active'));
+      b.classList.add('active');
+      $('#shopGoods').classList.toggle('hidden', b.dataset.shoptab !== 'goods');
+      $('#shopMults').classList.toggle('hidden', b.dataset.shoptab !== 'mults');
+    } else {
+      document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
+      b.classList.add('active');
+      ['membersBlock','guestsBlock','wdBlock','goodsBlock','msgsBlock','logBlock'].forEach(id => $('#'+id).classList.add('hidden'));
+      $('#'+b.dataset.tab).classList.remove('hidden');
+    }
   });
-}
 
-async function maybeExtraPin(email) {
-  if (email === ADMIN_EMAIL) return 'ok';
-  if (Math.random() >= PIN_CHANCE) return 'ok';
-  const timerOn = (await getSetting('pin_timer')) === 'true';
-  if (!timerOn) {
-    const code = prompt('🔐 Дополнительная проверка: введите код');
-    if (code === null) return 'wrong';
-    const { data: okv } = await supabase.rpc('verify_extra_pin', { p_code: code });
-    if (!okv) await reportFail('pin');
-    return okv ? 'ok' : 'wrong';
+  // ===== СОСТОЯНИЕ =====
+  let me = null, profile = null, myTable = null, isAdmin = false, myNick = '';
+  let members = [], guests = [], shopItems = [];
+
+  function isBannedNow(p){
+    return p?.banned_until && new Date(p.banned_until) > new Date();
   }
-  const { data: dl, error } = await supabase.rpc('start_pin_timer');
-  if (error || !dl) {
-    const code = prompt('🔐 Дополнительная проверка: введите код');
-    if (code === null) return 'wrong';
-    const { data: okv } = await supabase.rpc('verify_extra_pin', { p_code: code });
-    if (!okv) await reportFail('pin');
-    return okv ? 'ok' : 'wrong';
-  }
-  return await showPinOverlay(new Date(dl).getTime());
-}
-
-// ===== ВХОД =====
-async function trySignIn(nick, pass) {
-  let email = nick + '@mysait.local', isGuest = false;
-  const r1 = await supabase.auth.signInWithPassword({ email, password: pass });
-  if (r1.error) {
-    const r2 = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
-    if (r2.error) return { error: r1.error };
-    email = nick + '@guest.local'; isGuest = true;
-  }
-  return { email, isGuest };
-}
-
-async function updateLastSeen() {
-  if (!me) return;
-  await supabase.from(myTable).update({ last_seen: new Date().toISOString() }).eq('user_id', me.id);
-}
-async function clearMyKickFlag() {
-  if (!me) return;
-  await supabase.from(myTable).update({ kick_flag: false }).eq('user_id', me.id);
-}
-
-async function kickSelf(atLogin, message) {
-  stopped = true;
-  clearInterval(pollTimer);
-  if (me) await supabase.from(myTable).update({ kick_flag: false }).eq('user_id', me.id);
-  await supabase.auth.signOut();
-  me = null; isGuestAcc = false; isAdmin = false;
-  if (atLogin) {
-    renderAuthScreen();
-    const m = $('authMsg');
-    m.textContent = message || 'Сессия завершена владельцем';
-    void m.offsetWidth; m.classList.add('shake');
-  } else {
-    toast(message || '👋 Владелец завершил вашу сессию');
-    setTimeout(() => location.reload(), 2200);
-  }
-}
-
-async function enterApp(nick, row) {
-  const { data: u } = await supabase.auth.getUser();
-  if (!u || !u.user) return 'Сессия не найдена';
-  me = u.user;
-  myNick = nick;
-  let ia = false;
-  try { const { data: iaRpc } = await supabase.rpc('is_admin'); ia = !!iaRpc; } catch (e) {}
-  isAdmin = ia || me.email === ADMIN_EMAIL;
-
-  if (!row) {
-    const r = await rowForUserId(me.id);
-    row = r.row; myTable = r.table;
-  }
-  if (!row) { await kickSelf(true, 'Аккаунт не найден в базе — зарегистрируйтесь заново.'); return; }
-  if (row.deleted) { await kickSelf(true, 'Этот аккаунт удалён владельцем сайта'); return; }
-  if (row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
-    await kickSelf(true, 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now()));
-    return;
-  }
-  isGuestAcc = myTable === TBL_GUESTS;
-  await clearMyKickFlag();
-  updateLastSeen();
-
-  serverOff = await timerCheck();
-  alarmOn = await isAlarm();
-  if (serverOff || alarmOn) { await supabase.auth.signOut(); renderAuthScreen(); return; }
-
-  $('authScreen').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('whoami').textContent = myNick + (isAdmin ? ' (владелец)' : (isGuestAcc ? ' (гость)' : ' (участник)'));
-  $('adminSection').classList.toggle('hidden', !isAdmin);
-
-  if (isAdmin) {
-    lastListSignature = '';
-    loadMembers();
-    await loadWithdrawals(true);
-    loadAudit();
-    updateServerButton();
-    timerArmed = (await getSetting('pin_timer')) === 'true';
-    updateTimerButton();
-    devWatchOn = (await getSetting('devtools_watch')) === 'true';
-    updateDevWatchButton();
+  function showBanScreen(){
+    $('#nav').classList.add('hidden');
+    const forever = new Date(profile.banned_until).getFullYear() > 9000;
+    $('#banInfo').innerHTML = `Ник: <b>${esc(profile.nick)}</b><br>` +
+      (forever ? 'Забанен <b>навсегда</b>' : 'Забанен до ' + dt(profile.banned_until)) + '<br>' +
+      (profile.ban_reason ? 'Причина: ' + esc(profile.ban_reason) : '');
+    showPage('ban');
   }
 
-  await initNotifications();
-  await refreshPoints();
-  showPage(pendingPage || (isGuestAcc ? 'guest' : 'shop'));
-  pendingPage = null;
-  clearInterval(pollTimer);
-  pollTimer = setInterval(poll, 10000);
-  window.scrollTo(0, 0);
-}
-
-// Единое завершение входа: тип аккаунта определяется доменом email,
-// строка берётся из своей таблицы (members или guest_accounts)
-async function finishLogin(nick, isGuest) {
-  const { data: u } = await supabase.auth.getUser();
-  if (!u || !u.user) { await supabase.auth.signOut(); return 'Сессия не найдена, попробуйте снова'; }
-  myTable = tableFor(isGuest);
-  const { data: row } = await supabase.from(myTable).select('*').eq('user_id', u.user.id).maybeSingle();
-  if (row && row.deleted) { await supabase.auth.signOut(); return 'Этот аккаунт удалён владельцем сайта'; }
-  if (row && row.banned_until && new Date(row.banned_until).getTime() > Date.now()) {
-    await supabase.auth.signOut();
-    return 'Вход запрещён владельцем. Осталось: ' + fmtLeft(new Date(row.banned_until).getTime() - Date.now());
+  async function afterAuth(user){
+    me = user;
+    isAdmin = (user.email === ownerEmail);
+    const { data: m } = await sb.from('members').select('*').eq('user_id', user.id).maybeSingle();
+    if (m) { myTable = 'members'; profile = m; }
+    else {
+      const { data: g } = await sb.from('guest_accounts').select('*').eq('user_id', user.id).maybeSingle();
+      myTable = 'guest_accounts'; profile = g;
+    }
+    if (!profile) {
+      const nick = 'Гость-' + Math.floor(1000 + Math.random()*9000);
+      const { data: created } = await sb.from(myTable).insert({ user_id: user.id, nick }).select().single();
+      profile = created;
+    }
+    if (isBannedNow(profile)) { showBanScreen(); return; }
+    myNick = profile.nick;
+    $('#pNick').textContent = myNick;
+    $('#nav').classList.remove('hidden');
+    $('#navAdmin').classList.toggle('hidden', !isAdmin);
+    showPage('cabinet');
   }
-  const pinStatus = await maybeExtraPin(u.user.email);
-  if (pinStatus !== 'ok') {
-    await supabase.auth.signOut();
-    return pinStatus === 'wrong' ? 'Дополнительный код неверный — вход не выполнен' : null;
+
+  function refreshProfile(){
+    if (!me) return;
+    $('#pointsBig').textContent = profile?.points || 0;
+    $('#shopPoints').textContent = profile?.points || 0;
+    $('#shopCur').textContent = myTable === 'members' ? 'DEDSECK 💎' : 'гостевых 💠';
+    $('#clicksCount').textContent = profile?.clicks || 0;
+    const badge = $('#multBadge');
+    const m = profile?.mult || 1;
+    const until = profile?.mult_until ? new Date(profile.mult_until) : null;
+    if (m > 1 && until && until > new Date()){
+      const mins = Math.max(1, Math.round((until - new Date())/60000));
+      badge.textContent = `⚡ Множитель ×${m} активен ещё ${mins} мин`;
+      badge.classList.remove('hidden');
+    } else badge.classList.add('hidden');
+    loadHistory();
   }
-  try { await supabase.rpc('reset_fails'); } catch (e) {}
-  await enterApp(nick, row);
-  return null;
-}
 
-$('btnLogin').onclick = async () => {
-  const nick = $('nick').value.trim().toLowerCase(), pass = $('pass').value;
-  const m = $('authMsg');
-  m.textContent = ''; m.classList.remove('shake');
-  if (!nick || !pass) { m.textContent = 'Заполни логин и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
-  if (await isServerOff()) { serverOff = true; renderAuthScreen(); return; }
-  if (alarmOn || await isAlarm()) { alarmOn = true; renderAuthScreen(); return; }
-
-  const res = await trySignIn(nick, pass);
-  if (res.error) {
-    m.textContent = /invalid/i.test(res.error.message) ? 'Неверный логин или пароль' : (res.error.message || 'Не удалось войти');
-    void m.offsetWidth; m.classList.add('shake');
-    await reportFail('login');
-    return;
+  async function reloadProfile(){
+    if (!me) return;
+    const { data } = await sb.from(myTable).select('*').eq('user_id', me.id).maybeSingle();
+    if (data) profile = data;
+    if (isBannedNow(profile)) { showBanScreen(); return false; }
+    refreshProfile();
+    return true;
   }
-  pendingPage = res.isGuest ? 'guest' : 'shop';
-  const err = await finishLogin(nick, res.isGuest);
-  if (err) {
-    m.textContent = err;
-    void m.offsetWidth; m.classList.add('shake');
-  }
-};
 
-// ===== МАГАЗИН БЕЗ ВХОДА =====
-$('btnShopAuth').onclick = () => openShopAsVisitor();
+  // ===== ВХОД / РЕГИСТРАЦИЯ / ГОСТЬ =====
+  const NICK_RE = /^[a-zA-Zа-яА-ЯёЁ0-9_]{3,20}$/;
 
-async function openShopAsVisitor() {
-  serverOff = await timerCheck();
-  alarmOn = await isAlarm();
-  if (serverOff || alarmOn) { renderAuthScreen(); return; }
-  $('authScreen').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('adminSection').classList.add('hidden');
-  $('whoami').textContent = 'не вошёл — покупки за баллы недоступны';
-  await loadShop();
-  showPage('shop');
-}
-
-// ===== СТРАНИЦЫ =====
-function showPage(page) {
-  curPage = page;
-  // Гостевой кабинет доступен только гостям — остальные видят свой кабинет.
-  if (page === 'guest' && me && !isGuestAcc) page = 'cabinet';
-  $('pageCabinet').classList.toggle('hidden', page !== 'cabinet');
-  $('pageShop').classList.toggle('hidden', page !== 'shop');
-  $('pageGuest').classList.toggle('hidden', page !== 'guest');
-  if (page === 'shop') loadShop();
-  if (page === 'guest') updateGuestPage();
-  if (page === 'cabinet' && me) { refreshPoints(); loadHistory('histList'); }
-  window.scrollTo(0, 0);
-}
-
-$('btnShopPage').onclick = () => {
-  if (!me) { $('authScreen').classList.remove('hidden'); $('app').classList.add('hidden'); toast('Сначала войдите или нажмите «🛒 Магазин» на экране входа'); return; }
-  showPage('shop');
-};
-$('btnCabinet').onclick = () => {
-  if (!me) {
-    $('app').classList.add('hidden');
-    $('authScreen').classList.remove('hidden');
-    renderAuthScreen();
-    toast('Сначала войдите — кабинет откроется после входа');
-    return;
-  }
-  showPage(isGuestAcc ? 'guest' : 'cabinet');
-};
-$('btnShopReload').onclick = loadShop;
-
-// ===== ВОЙТИ КАК =====
-$('btnEnterAsAuth').onclick = () => $('enterAsModal').classList.remove('hidden');
-$('btnEnterAsClose').onclick = () => $('enterAsModal').classList.add('hidden');
-$('enterAsModal').addEventListener('click', e => { if (e.target === $('enterAsModal')) $('enterAsModal').classList.add('hidden'); });
-$('btnAsGuest').onclick = () => {
-  $('enterAsModal').classList.add('hidden');
-  if (me && isGuestAcc) { showPage('guest'); return; }
-  if (me) { toast('Вы в аккаунте ' + myNick + '. Чтобы зайти гостем — сначала нажмите «Выйти» сверху'); return; }
-  $('authScreen').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('adminSection').classList.add('hidden');
-  $('whoami').textContent = 'не вошёл';
-  showPage('guest');
-};
-$('btnAsEmployee').onclick = () => {
-  $('enterAsModal').classList.add('hidden');
-  if (me && !isGuestAcc) { showPage('shop'); return; }
-  if (me) { supabase.auth.signOut().then(() => location.reload()); return; }
-  $('app').classList.add('hidden');
-  $('authScreen').classList.remove('hidden');
-  renderAuthScreen();
-  $('nick').focus();
-  toast('Введите логин и пароль участника');
-};
-
-// ===== РЕГИСТРАЦИЯ ГОСТЯ =====
-$('btnGuestReg').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
-$('btnGuestRegOpen').onclick = () => { $('guestRegModal').classList.remove('hidden'); $('gMsg').textContent = ''; };
-$('btnGuestRegClose').onclick = () => $('guestRegModal').classList.add('hidden');
-$('guestRegModal').addEventListener('click', e => { if (e.target === $('guestRegModal')) $('guestRegModal').classList.add('hidden'); });
-
-$('btnGuestCreate').onclick = async () => {
-  const msg = $('gMsg'); msg.textContent = '';
-  const nick = $('gNick').value.trim().toLowerCase(), pass = $('gPass').value;
-  if (!nick || pass.length < 6) { msg.textContent = 'Укажи логин и пароль от 6 символов'; return; }
-  const { data, error } = await supabase.auth.signUp({ email: nick + '@guest.local', password: pass });
-  if (error) { msg.textContent = /already registered/i.test(error.message) ? 'Такой логин занят' : error.message; return; }
-  const { error: insErr } = await supabase.from(TBL_GUESTS)
-    .insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
-  if (insErr) { msg.textContent = 'Ошибка записи: ' + insErr.message; return; }
-  msg.textContent = 'Готово! Теперь войдите как гость';
-  $('gNick').value = ''; $('gPass').value = '';
-  toast('👤 Гостевой аккаунт создан');
-};
-
-// ===== ВХОД ГОСТЯ =====
-async function guestLoginFrom(fieldNick, fieldPass, msgId) {
-  const nick = $(fieldNick).value.trim().toLowerCase(), pass = $(fieldPass).value;
-  const m = $(msgId); m.textContent = ''; m.classList.remove('shake');
-  if (!nick || !pass) { m.textContent = 'Заполни логин и пароль'; void m.offsetWidth; m.classList.add('shake'); return; }
-  if (await isServerOff()) { serverOff = true; renderAuthScreen(); return; }
-  if (alarmOn || await isAlarm()) { alarmOn = true; renderAuthScreen(); return; }
-  const { error } = await supabase.auth.signInWithPassword({ email: nick + '@guest.local', password: pass });
-  if (error) {
-    m.textContent = /invalid/i.test(error.message) ? 'Неверный логин или пароль (или это не гостевой аккаунт)' : error.message;
-    void m.offsetWidth; m.classList.add('shake');
-    await reportFail('login');
-    return;
-  }
-  pendingPage = 'guest';
-  const err = await finishLogin(nick, true);
-  if (err) m.textContent = err;
-}
-
-$('btnGuestLogin2').onclick = () => guestLoginFrom('geNick2', 'gePass2', 'geMsg2');
-$('geNick2').addEventListener('keydown', e => { if (e.key === 'Enter') guestLoginFrom('geNick2', 'gePass2', 'geMsg2'); });
-$('gePass2').addEventListener('keydown', e => { if (e.key === 'Enter') guestLoginFrom('geNick2', 'gePass2', 'geMsg2'); });
-$('btnGuestToShop').onclick = () => showPage('shop');
-
-function updateGuestPage() {
-  const logged = !!me && isGuestAcc;
-  $('guestLoginBlock').classList.toggle('hidden', logged);
-  $('guestCabinet').classList.toggle('hidden', !logged);
-  if (logged) { refreshPoints(); loadHistory('guestHistList'); }
-}
-
-// ===== ПОПОЛНЕНИЕ =====
-async function topup(msgId) {
-  const msg = $(msgId); msg.textContent = '';
-  if (!me) { msg.textContent = 'Сначала войдите'; return; }
-  const rub = parseFloat(prompt('💡 1 рубль = 10 баллов.\nСколько рублей вносите?'));
-  if (isNaN(rub) || rub <= 0) { msg.textContent = 'Укажи число больше 0'; return; }
-  const pts = Math.round(rub * 10);
-  const { error } = await supabase.from('guest_requests').insert({ user_id: me.id, amount: pts });
-  if (error) { msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Заявка на ' + pts + ' балл(ов) (' + rub + ' руб.) отправлена владельцу';
-  toast('💰 Заявка на пополнение отправлена');
-}
-$('btnTopup').onclick = () => topup('topMsg');
-$('btnGuestTopup').onclick = () => topup('guestTopMsg');
-
-$('btnLogout').onclick = async () => {
-  clearInterval(pollTimer);
-  await supabase.auth.signOut();
-  location.reload();
-};
-
-// ===== БАЛАНС =====
-async function refreshPoints() {
-  if (!me) return;
-  const { data } = await supabase.from(myTable).select('points').eq('user_id', me.id).maybeSingle();
-  $('pointsBig').textContent = data ? (data.points || 0) : 0;
-  $('guestPoints').textContent = data ? (data.points || 0) : 0;
-}
-
-// ===== ИСТОРИЯ =====
-async function loadHistory(listId) {
-  const l = $(listId || 'histList');
-  if (!l || !me) return;
-  const { data: pr } = await supabase.from('products').select('id,title');
-  const pm = {}; (pr || []).forEach(p => pm[p.id] = p.title);
-  const { data, error } = await supabase.from('purchases').select('*').order('created_at', { ascending: false }).limit(30);
-  if (error) { l.innerHTML = '<div class="small">История недоступна</div>'; return; }
-  const mine = (data || []).filter(x => x.user_id === me.id);
-  l.innerHTML = mine.map(x => {
-    const st = x.status === 'done' ? '✅' : (x.status === 'rejected' ? '❌ отклонена' : '⏳ ждёт подтверждения');
-    return `<div class="item"><span>${st} «${esc(pm[x.product_id] || 'товар')}» — ${methodLabel(x.method)}</span><span class="small" style="white-space:nowrap">${new Date(x.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`;
-  }).join('') || '<div class="small">Покупок пока нет</div>';
-}
-
-// ===== МАГАЗИН =====
-async function loadShop() {
-  const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-  if (error) { $('productList').innerHTML = '<div class="err">Ошибка: ' + esc(error.message) + '</div>'; return; }
-  shopCache = data || [];
-  shopCache.forEach(p => prodMap[p.id] = p.title);
-  renderProducts();
-}
-
-function pricesText(p) {
-  const parts = [];
-  if (p.price_rub) parts.push('₽ ' + p.price_rub);
-  parts.push('DEDSECK: ' + p.price + ' балл(ов)');
-  parts.push('гость: ' + (p.guest_price ?? p.price) + ' балл(ов)');
-  return parts.join(' · ');
-}
-function priceFor(p, method) { return method === 'guest' ? (p.guest_price ?? p.price) : p.price; }
-
-function renderProducts() {
-  const l = $('productList');
-  if (!shopCache.length) { l.innerHTML = '<div class="small">Товаров пока нет</div>'; return; }
-  l.innerHTML = '';
-  for (const p of shopCache) {
-    const d = document.createElement('div');
-    d.className = 'prod';
-    const soldOut = p.quantity <= 0;
-    d.innerHTML = (p.photo ? `<img class="prodimg" src="${p.photo}">` : '') +
-      `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` +
-      `<div class="small">${esc(p.description || '')}</div>` +
-      `<div>Цена: <span class="prodprice">${pricesText(p)}</span></div>` +
-      `<div class="small">В наличии: ${p.quantity}${soldOut ? ' · <span style="color:var(--err)">нет в наличии</span>' : ''}</div>`;
-    d.onclick = () => openBuy(p);
-    l.appendChild(d);
-  }
-}
-
-// ===== ПОКУПКА =====
-function openBuy(p) {
-  currentBuy = { product: p, method: null };
-  $('buyModal').classList.remove('hidden');
-  $('buyTitle').textContent = '🛒 ' + p.title;
-  const soldOut = p.quantity <= 0;
-  $('buyInfo').innerHTML = (p.photo ? `<img class="prodimg" src="${p.photo}">` : '') +
-    `<div class="small" style="margin-bottom:6px">${esc(p.description || '')}</div>` +
-    `<div>Цена: <span class="prodprice">${pricesText(p)}</span></div>` +
-    `<div class="small" style="margin-top:4px">В наличии: ${p.quantity}${soldOut ? ' · товара нет' : ''}</div>`;
-  $('buyMsg').textContent = '';
-  $('buyNameBlock').classList.add('hidden');
-  $('btnBuyConfirm').classList.add('hidden');
-  $('buyMethodBox').innerHTML = '';
-  if (soldOut) { $('buyMethodBox').innerHTML = '<div class="err">Товар закончился</div>'; return; }
-
-  const box = $('buyMethodBox');
-  const mk = (label, cls, method) => {
-    const b = document.createElement('button');
-    b.textContent = label; b.className = cls; b.style.width = '100%';
-    b.onclick = () => chooseMethod(method, p);
-    box.appendChild(b);
+  $('#btnLogin').onclick = async () => {
+    msg('#authMsg','','');
+    const nick = $('#authNick').value.trim();
+    if (!nick) { msg('#authMsg','Введите ник','err'); return; }
+    const { error } = await sb.auth.signInWithPassword({ email: emailOf(nick), password: $('#authPass').value });
+    if (error) msg('#authMsg', /Invalid login credentials/i.test(error.message) ? 'Неверный ник или пароль' : 'Не вошёл: ' + error.message, 'err');
   };
-  mk('💳 Купить за рубли' + (p.price_rub ? ' — ₽ ' + p.price_rub : ''), 'warn', 'kingroom');
-  if (me) {
-    if (isGuestAcc) mk('💳 Оплатить баллами гостя — ' + (p.guest_price ?? p.price) + ' балл(ов)', 'okbtn', 'guest');
-    else mk('💳 Оплатить баллами DEDSECK — ' + p.price + ' балл(ов)', 'okbtn', 'dedseck');
-  } else {
-    box.insertAdjacentHTML('beforeend',
-      '<div class="small" style="margin-top:6px">Баллами платят только вошедшие — используйте «🔀 Войти как…» или войдите на главном экране.</div>');
+
+  $('#btnRegister').onclick = async () => {
+    msg('#authMsg','','');
+    const nick = $('#authNick').value.trim();
+    const pass = $('#authPass').value;
+    if (!NICK_RE.test(nick)) { msg('#authMsg','Ник: 3–20 символов, только буквы, цифры и _','err'); return; }
+    if (pass.length < 6) { msg('#authMsg','Пароль минимум 6 символов','err'); return; }
+    const { data, error } = await sb.auth.signUp({ email: emailOf(nick), password: pass });
+    if (error) {
+      msg('#authMsg', /already registered|уже/i.test(error.message) ? 'Этот ник уже занят' : error.message, 'err');
+      return;
+    }
+    if (data.session) {
+      await sb.from('members').insert({ user_id: data.user.id, nick });
+      msg('#authMsg','Аккаунт создан, вы вошли!','ok');
+    } else {
+      msg('#authMsg','Включено подтверждение почты. Supabase → Authentication → Providers → Email → Confirm email: OFF.','err');
+    }
+  };
+
+  $('#btnGuest').onclick = async () => {
+    msg('#authMsg','','');
+    const { error } = await sb.auth.signInAnonymously();
+    if (error) msg('#authMsg','Гостевой вход выключен в Supabase (Authentication → Providers → Anonymous). ' + error.message, 'err');
+  };
+  $('#btnLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  $('#btnBanLogout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+  sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === 'SIGNED_IN' && session && !me) afterAuth(session.user);
+  });
+
+  // ===== КЛИКЕР =====
+  function spawnPlus1(ev, val){
+    const s = document.createElement('span');
+    s.className = 'plus1'; s.textContent = '+' + val;
+    s.style.left = (ev.clientX || innerWidth/2) + 'px';
+    s.style.top  = (ev.clientY || innerHeight/2) + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
   }
-}
+  $('#btnClicker').onclick = async (ev) => {
+    if (!me) return;
+    const btn = $('#btnClicker');
+    btn.disabled = true;
+    const { data, error } = await sb.rpc('click_me');
+    btn.disabled = false;
+    if (error) {
+      if (error.message.includes('ВЫ_ЗАБАНЕНЫ')) { await reloadProfile(); showBanScreen(); return; }
+      toast('Клик не записался: ' + error.message); return;
+    }
+    profile.clicks = data;
+    $('#clicksCount').textContent = data;
+    spawnPlus1(ev, profile?.mult || 1);
+  };
 
-function chooseMethod(method, p) {
-  currentBuy.method = method;
-  $('buyNameBlock').classList.toggle('hidden', method !== 'kingroom');
-  $('btnBuyConfirm').classList.remove('hidden');
-  $('btnBuyConfirm').textContent = method === 'kingroom'
-    ? 'Отправить заявку (рубли)'
-    : 'Отправить заявку — списать ' + priceFor(p, method) + ' балл(ов)';
-  $('buyMsg').textContent = 'Способ: ' + methodLabel(method);
-  $('btnBuyConfirm').onclick = () => submitBuy(p, method);
-}
+  // ===== ВЫВОД БАЛЛОВ =====
+  $('#btnWithdraw').onclick = async () => {
+    msg('#wdMsg','','');
+    const amt = parseInt($('#wdAmount').value, 10);
+    if (isNaN(amt) || amt <= 0) { msg('#wdMsg','Укажите число больше 0','err'); return; }
+    if ((profile.points||0) < amt) { msg('#wdMsg','Недостаточно баллов','err'); return; }
+    const { error } = await sb.from('withdrawals').insert({ user_id: me.id, nick: myNick, amount: amt, status: 'pending' });
+    if (error) {
+      if (/row-level security|policy/i.test(error.message)) msg('#wdMsg','Заявка отклонена: возможно, вы забанены','err');
+      else msg('#wdMsg','Не получилось: ' + error.message,'err');
+      return;
+    }
+    msg('#wdMsg','Заявка на ' + amt + ' балл(ов) отправлена владельцу','ok');
+    $('#wdAmount').value = '';
+    toast('💰 Заявка отправлена');
+  };
 
-async function submitBuy(p, method) {
-  const msg = $('buyMsg'); msg.textContent = '';
-  let buyerName = null, buyerPhone = null;
-  if (method === 'kingroom') {
-    const n = $('buyName').value.trim(), s = $('buySurname').value.trim(), ph = $('buyPhone').value.trim();
-    if (!n || !s || !ph) { msg.textContent = 'Впишите имя, фамилию и номер телефона'; return; }
-    buyerName = n + ' ' + s; buyerPhone = ph;
+  // ===== СООБЩЕНИЕ ВЛАДЕЛЬЦУ =====
+  $('#btnSendToOwner').onclick = async () => {
+    msg('#ownerMsgStatus','','');
+    const text = $('#ownerMsgText').value.trim();
+    if (!text) { msg('#ownerMsgStatus','Введите текст','err'); return; }
+    const { error } = await sb.from('owner_messages').insert({ user_id: me.id, nick: myNick, text });
+    if (error) { msg('#ownerMsgStatus','Не получилось: ' + error.message,'err'); return; }
+    msg('#ownerMsgStatus','Сообщение отправлено','ok');
+    $('#ownerMsgText').value = '';
+    toast('✉️ Отправлено');
+  };
+
+  // ===== МАГАЗИН =====
+  async function loadHistory(){
+    const { data } = await sb.from('purchases').select('*').eq('user_id', me.id).order('created_at',{ascending:false}).limit(20);
+    $('#histList').innerHTML = (data||[]).map(p =>
+      `<div class="item"><span>🧾 ${esc(p.item)}</span><span class="small">−${p.price} · ${dt(p.created_at)}</span></div>`
+    ).join('') || '<div class="small">Покупок пока нет</div>';
   }
-  if (method !== 'kingroom' && !me) { msg.textContent = 'Сначала войдите в аккаунт'; return; }
-  if (method === 'guest' && me && !isGuestAcc) { msg.textContent = 'Баллами гостя платят только гости'; return; }
-  if (method === 'dedseck' && me && isGuestAcc) { msg.textContent = 'Баллами DEDSECK платят только участники'; return; }
 
-  const { error } = await supabase.from('purchases')
-    .insert({ product_id: p.id, method, price: priceFor(p, method), buyer_name: buyerName, user_id: me ? me.id : null, phone: buyerPhone });
-  if (error) { msg.textContent = 'Не получилось: ' + error.message; return; }
+  async function loadShop(){
+    const { data } = await sb.from('shop_items').select('*').eq('active', true).order('created_at',{ascending:false});
+    shopItems = data || [];
+    renderShop();
+  }
 
-  const who = buyerName || myNick;
-  try {
-    await supabase.from('notifications').insert({
-      recipient_id: null,
-      text: '🛒 Хотят купить: ' + who + (buyerPhone ? ' (📞 ' + buyerPhone + ')' : '') +
-        ' → «' + p.title + '» за ' + methodLabel(method)
+  function itemCard(it){
+    const isMember = myTable === 'members';
+    const myPrice = isMember ? it.price_dedseck : it.price_guest;
+    const photo = it.photo ? `<img src="${esc(it.photo)}" alt="" onerror="this.style.display='none'">` : '';
+    const kindLine = it.kind === 'mult'
+      ? `<div class="prices">⚡ Множитель ×${it.mult} на ${it.mult_minutes} мин</div>`
+      : '';
+    return `<div class="shop-item">
+      ${photo}
+      <div class="shop-info">
+        <div class="name">${esc(it.name)}</div>
+        ${it.descr ? `<div class="descr">${esc(it.descr)}</div>` : ''}
+        ${kindLine}
+        <div class="prices">Гость 💠: ${it.price_guest} · DEDSECK 💎: ${it.price_dedseck} · ≈${it.price_rub} ₽</div>
+        <div class="small">Для вас: <b>${myPrice}</b> ${isMember ? 'DEDSECK 💎' : 'гостевых 💠'}</div>
+      </div>
+      <button class="btn tiny shop-buy" data-buy="${it.id}" title="Купить за ${myPrice} ${isMember ? 'DEDSECK 💎' : 'гостевых 💠'}">Купить</button>
+    </div>`;
+  }
+
+  function renderShop(){
+    $('#shopPoints').textContent = profile?.points || 0;
+    const goods = shopItems.filter(i => i.kind !== 'mult');
+    const mults = shopItems.filter(i => i.kind === 'mult');
+    $('#shopGoods').innerHTML = goods.map(itemCard).join('') || '<div class="small">Товаров пока нет — владелец скоро их добавит</div>';
+    $('#shopMults').innerHTML = mults.map(itemCard).join('') || '<div class="small">Множителей пока нет</div>';
+    document.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => buy(b.dataset.buy));
+  }
+
+  async function buy(id){
+    msg('#shopMsg','','');
+    const it = shopItems.find(s => s.id === id);
+    if ((profile.points||0) < (myTable === 'members' ? it.price_dedseck : it.price_guest)) {
+      msg('#shopMsg','Недостаточно баллов','err'); return;
+    }
+    const { data, error } = await sb.rpc('buy_shop_item', { p_id: id });
+    if (error) {
+      if (error.message.includes('ВЫ_ЗАБАНЕНЫ')) { await reloadProfile(); showBanScreen(); return; }
+      msg('#shopMsg','Не купилось: ' + error.message,'err'); return;
+    }
+    profile.points = data;
+    await reloadProfile();
+    msg('#shopMsg','Куплено: ' + it.name,'ok');
+    toast('🛍 ' + it.name);
+    loadShop();
+  }
+
+  // ===== АДМИНКА =====
+  async function log(action){
+    await sb.from('audit_log').insert({ actor: myNick, action });
+  }
+  async function loadAdmin(){
+    if (!isAdmin) return;
+    const [m, g, w, gi, ms, lg] = await Promise.all([
+      sb.from('members').select('*').order('created_at',{ascending:false}),
+      sb.from('guest_accounts').select('*').order('created_at',{ascending:false}),
+      sb.from('withdrawals').select('*').eq('status','pending').order('created_at',{ascending:false}),
+      sb.from('shop_items').select('*').order('created_at',{ascending:false}),
+      sb.from('owner_messages').select('*').order('created_at',{ascending:false}).limit(50),
+      sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(30),
+    ]);
+    members = m.data || []; guests = g.data || [];
+    renderPeople('membersList', members, 'members');
+    renderPeople('guestsList', guests, 'guest_accounts');
+    $('#wdAdminList').innerHTML = (w.data||[]).map(x =>
+      `<div class="item"><span>💰 <b>${esc(x.nick)}</b> просит вывести <b>${x.amount}</b></span>
+       <span class="row"><button class="btn tiny" data-wd="ok" data-id="${x.id}" title="Списать баллы и одобрить вывод">✔ Одобрить</button>
+       <button class="btn danger tiny" data-wd="no" data-id="${x.id}" title="Отказать без списания">✖ Отклонить</button></span></div>`
+    ).join('') || '<div class="small">Заявок нет</div>';
+    $('#goodsList').innerHTML = (gi.data||[]).map(x =>
+      `<div class="item">
+        <span>${x.kind === 'mult' ? '⚡ ×'+x.mult : '📦'} <b>${esc(x.name)}</b>
+        <span class="small">· Гость ${x.price_guest}💠 · DS ${x.price_dedseck}💎 · ${x.price_rub}₽</span></span>
+        <button class="btn danger tiny" data-del="${x.id}" title="Убрать товар из магазина">✖ Удалить</button>
+      </div>`
+    ).join('') || '<div class="small">Товаров нет</div>';
+    $('#msgsAdminList').innerHTML = (ms.data||[]).map(x =>
+      `<div class="item"><span>✉️ <b>${esc(x.nick)}</b>: ${esc(x.text)}</span><span class="small">${dt(x.created_at)}</span></div>`
+    ).join('') || '<div class="small">Сообщений нет</div>';
+    $('#logList').innerHTML = (lg.data||[]).map(x =>
+      `<div class="item"><span>${esc(x.action)}</span><span class="small">${esc(x.actor)} · ${dt(x.created_at)}</span></div>`
+    ).join('') || '<div class="small">Журнал пуст</div>';
+
+    document.querySelectorAll('[data-wd]').forEach(b => b.onclick = () => decideWd(b));
+    document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (!confirm('Удалить товар из магазина?')) return;
+      await sb.from('shop_items').delete().eq('id', b.dataset.del);
+      await log('Товар удалён из магазина');
+      toast('Товар удалён');
+      loadAdmin();
     });
-  } catch (e) {}
-  msg.textContent = 'Заявка отправлена владельцу — после подтверждения товар ваш';
-  toast('🛒 Заявка на «' + p.title + '» отправлена');
-  if (me) { await refreshPoints(); await loadHistory('histList'); await loadHistory('guestHistList'); }
-  setTimeout(() => { closeBuy(); loadShop(); }, 1500);
-}
-
-function closeBuy() {
-  currentBuy = null;
-  $('buyModal').classList.add('hidden');
-  $('buyName').value = ''; $('buySurname').value = ''; $('buyPhone').value = '';
-  $('btnBuyConfirm').classList.add('hidden');
-  $('buyNameBlock').classList.add('hidden');
-  $('buyMethodBox').innerHTML = '';
-}
-$('btnBuyCancel').onclick = closeBuy;
-$('btnBuyCloseX').onclick = closeBuy;
-
-// ===== АДМИНКА: УЧАСТНИКИ =====
-$('btnMembers').onclick = () => {
-  membersOpen = !membersOpen;
-  $('membersBlock').classList.toggle('hidden', !membersOpen);
-  $('btnMembers').textContent = membersOpen ? '👥 Участники ▲' : '👥 Участники';
-  if (membersOpen) { lastListSignature = ''; loadMembers(); loadWithdrawals(true); loadAudit(); }
-};
-$('btnReload').onclick = () => { lastListSignature = ''; loadMembers(); loadWithdrawals(true); };
-$('btnAudit').onclick = loadAudit;
-
-async function loadMembers() {
-  if (!isAdmin) return;
-  const { data, error } = await supabase.from(TBL_MEMBERS).select('*').order('nick');
-  const list = $('accList');
-  if (error) { members = []; list.innerHTML = '<div class="err">Ошибка: ' + esc(error.message) + '</div>'; return; }
-  members = (data || []).filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_MEMBERS }));
-  if (selectedId && !members.some(a => a.id === selectedId)) selectedId = null;
-  renderMemberList();
-  fillSendSelect();
-}
-
-async function loadGuestsList() {
-  const { data, error } = await supabase.from(TBL_GUESTS).select('*').order('nick');
-  if (error) { guests = []; return; }
-  guests = (data || []).filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_GUESTS }));
-  if (selectedGuestId && !guests.some(a => a.id === selectedGuestId)) selectedGuestId = null;
-  renderGuestList();
-}
-
-function listSignature() {
-  return members.map(a => [
-    a.id, a.nick, a.points, isOnline(a) ? 1 : 0, isBanned(a) ? a.banned_until : '', a.id === selectedId ? 1 : 0,
-    (a.id === selectedId) ? wdCache.filter(w => w.user_id === a.user_id).length : 0
-  ].join('~')).join(';');
-}
-
-function renderMemberList() {
-  const list = $('accList');
-  if (!list) return;
-  const sig = listSignature();
-  if (sig === lastListSignature) return;
-  lastListSignature = sig;
-  const oldDet = list.querySelector('.detail');
-  let savedDetAmount = '10', savedBanAmount = '10', savedBanUnit = 'min';
-  if (oldDet) {
-    const da = oldDet.querySelector('#detAmount'); if (da && da.value !== '') savedDetAmount = da.value;
-    const ba = oldDet.querySelector('#banAmount'); if (ba && ba.value !== '') savedBanAmount = ba.value;
-    const bu = oldDet.querySelector('#banUnit'); if (bu) savedBanUnit = bu.value;
   }
-  list.innerHTML = '';
-  for (const a of members) {
-    const isMe = a.user_id === me.id;
-    const banned = isBanned(a);
-    const d = document.createElement('div');
-    d.className = 'item clickable' + (a.id === selectedId ? ' selected' : '');
-    const wdCount = wdCache.filter(w => w.user_id === a.user_id).length;
-    d.innerHTML = `
-      <span class="usercell">
-        <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
-        <span>
-          <b>${esc(a.nick)}</b>${isMe ? ' <span class="small">(вы)</span>' : ''}
-          &nbsp;<span class="small">⭐ ${a.points || 0}</span>
-          ${wdCount ? ' <span class="badge">💰 ' + wdCount + '</span>' : ''}
-          <br><span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}" style="margin-left:0">
-            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
-          </span>
+
+  function renderPeople(listId, arr, tbl){
+    $('#'+listId).innerHTML = arr.map(a => {
+      const banned = a.banned_until && new Date(a.banned_until) > new Date();
+      const forever = a.banned_until && new Date(a.banned_until).getFullYear() > 9000;
+      const banLine = banned
+        ? `<span class="small">⛔ ${forever ? 'навсегда' : 'до ' + dt(a.banned_until)}${a.ban_reason ? ' ('+esc(a.ban_reason)+')' : ''}</span>`
+        : '';
+      return `<div class="item">
+        <span>${tbl==='members'?'👤':'👻'} <b>${esc(a.nick||'?')}</b> · 💰 ${a.points||0} · 🖱 ${a.clicks||0} ${banLine}</span>
+        <span class="row">
+          <input type="number" class="mini-input" data-pts="${a.id}" placeholder="Баллы" min="0" title="Точное число баллов">
+          <button class="btn tiny" data-act="setpts" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Установить баллы из поля слева">Уст.</button>
+          <button class="btn tiny" data-act="add" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Выдать 10 баллов">+10</button>
+          <button class="btn tiny" data-act="sub" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Снять 10 баллов">−10</button>
+          <button class="btn warn tiny" data-act="zeroc" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Обнулить счётчик кликов">🖱0</button>
+          <button class="btn ghost tiny" data-act="resetm" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Сбросить активный множитель участника">⚡×1</button>
+          <input type="number" class="mini-input" data-banmin="${a.id}" placeholder="мин" min="1" style="width:64px" title="Срок бана в минутах">
+          <button class="btn danger tiny" data-act="ban" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Забанить на минуты из поля">⛔</button>
+          <button class="btn danger tiny" data-act="banforever" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Забанить навсегда">∞</button>
+          <button class="btn warn tiny" data-act="kick" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Кикнуть: бан на 5 минут">🥾</button>
+          <button class="btn ghost tiny" data-act="unban" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Снять бан полностью">Снять</button>
+          <button class="btn danger tiny" data-act="del" data-id="${a.id}" data-tbl="${tbl}" data-nick="${esc(a.nick||'')}" title="Удалить аккаунт целиком (безвозвратно)">🗑</button>
         </span>
-      </span>
-      <span class="small">${a.id === selectedId ? '▲ свернуть' : '▼ открыть'}</span>`;
-    d.onclick = () => { selectedId = (selectedId === a.id) ? null : a.id; lastListSignature = ''; renderMemberList(); };
-    list.appendChild(d);
+      </div>`;
+    }).join('') || '<div class="small">Список пуст</div>';
+    document.querySelectorAll(`#${listId} [data-act]`).forEach(b => b.onclick = () => peopleAction(b));
+  }
 
-    if (a.id === selectedId) {
-      const online = isOnline(a);
-      const det = document.createElement('div');
-      det.className = 'detail';
-      det.innerHTML = `
-        <div class="row" style="margin-bottom:4px"><span><b>Ник:</b> ${esc(a.nick)}</span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b>
-          <span class="pill ${banned ? 'ban' : (online ? 'on' : 'off')}">
-            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
-          </span></span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
-        <div class="small" style="margin:10px 0 2px"><b>Баллы (индивидуально):</b></div>
-        <div class="row"><input type="number" min="0" value="${esc(savedDetAmount)}" id="detAmount" style="max-width:110px"></div>
-        <div class="row">
-          <button id="detAdd">＋ Начислить</button>
-          <button id="detSub" class="danger">－ Списать</button>
-          <button id="detSet" class="gray">＝ Установить</button>
-        </div>
-        <div id="wdDetBlock"></div>
-        <div class="small" style="margin:10px 0 2px"><b>Кик и бан:</b></div>
-        <div class="row"><button id="detKick" class="warn" ${isMe ? 'disabled' : ''}>👋 Кикнуть</button></div>
-        <div class="row">
-          <input type="number" min="1" value="${esc(savedBanAmount)}" id="banAmount" style="max-width:90px">
-          <select id="banUnit" style="max-width:120px">
-            <option value="min" ${savedBanUnit === 'min' ? 'selected' : ''}>минут</option>
-            <option value="hours" ${savedBanUnit === 'hours' ? 'selected' : ''}>часов</option>
-          </select>
-          <button id="detBan" class="danger" ${isMe ? 'disabled' : ''}>🚫 Запретить вход</button>
-          <button id="detUnban" class="gray">Снять бан</button>
-        </div>
-        <div class="row"><button id="detDel" class="danger" ${isMe ? 'disabled' : ''}>🗑 Удалить участника</button></div>
-        <div id="detMsg" class="ok"></div>`;
-      list.appendChild(det);
+  async function peopleAction(b){
+    const { act, id, tbl, nick } = b.dataset;
+    const arr = tbl === 'members' ? members : guests;
+    const row = arr.find(x => x.id === id);
+    if (!row) return;
+    const itemEl = b.closest('.item');
 
-      const wdDetBlock = det.querySelector('#wdDetBlock');
-      const myWd = wdCache.filter(w => w.user_id === a.user_id);
-      if (myWd.length) {
-        const hd = document.createElement('div');
-        hd.className = 'small'; hd.style.cssText = 'margin:10px 0 2px';
-        hd.innerHTML = '<b>💰 Запросы на вывод:</b>';
-        wdDetBlock.appendChild(hd);
-        for (const w of myWd) {
-          const wr = document.createElement('div'); wr.className = 'item';
-          wr.innerHTML = `<span>${esc(w.nick || '?')}: ${w.amount} балл(ов)</span>`;
-          const bb = document.createElement('button');
-          bb.className = 'okbtn'; bb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-          bb.textContent = '✅ Вывод успешный'; bb.onclick = () => confirmWithdrawal(w);
-          const rb = document.createElement('button');
-          rb.className = 'danger'; rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-          rb.textContent = '✕ Отклонить'; rb.onclick = () => rejectWithdrawal(w);
-          wr.appendChild(bb); wr.appendChild(rb);
-          wdDetBlock.appendChild(wr);
-        }
+    if (act === 'setpts' || act === 'add' || act === 'sub') {
+      let np;
+      if (act === 'setpts') {
+        const v = parseInt(itemEl.querySelector(`[data-pts="${id}"]`).value, 10);
+        if (isNaN(v) || v < 0) { toast('Введите число баллов (0 или больше)'); return; }
+        np = v;
+      } else {
+        np = Math.max(0, (row.points||0) + (act === 'add' ? 10 : -10));
       }
-
-      det.querySelector('#detAdd').onclick = () => changePointsDet(a, 'add');
-      det.querySelector('#detSub').onclick = () => changePointsDet(a, 'sub');
-      det.querySelector('#detSet').onclick = () => changePointsDet(a, 'set');
-      if (!isMe) {
-        det.querySelector('#detKick').onclick = () => kickMember(a);
-        det.querySelector('#detBan').onclick = () => banMember(a);
-        det.querySelector('#detDel').onclick = () => deleteMember(a);
-      }
-      det.querySelector('#detUnban').onclick = () => unbanMember(a);
+      const { error } = await sb.rpc('admin_set', { p_tbl: tbl, p_id: id, p_points: np, p_clicks: null });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.points = np;
+      await log(`Баллы ${nick}: ${act==='setpts'?'установлено':(act==='add'?'+':'−')+'10'} → ${np}`);
+      toast(`Баллы ${nick}: ${np}`);
     }
-  }
-  if (!members.length) list.innerHTML = '<div class="small">Участников пока нет</div>';
-}
-
-async function changePointsDet(a, mode) {
-  const det = $('accList').querySelector('.detail');
-  if (!det) return;
-  const amt = parseInt(det.querySelector('#detAmount').value, 10);
-  const msg = det.querySelector('#detMsg');
-  msg.className = 'ok'; msg.textContent = '';
-  if (isNaN(amt) || amt < 0) { msg.className = 'err'; msg.textContent = 'Укажи число 0 или больше'; return; }
-  let newVal;
-  if (mode === 'set') newVal = amt;
-  else if (mode === 'add') newVal = (a.points || 0) + amt;
-  else newVal = Math.max(0, (a.points || 0) - amt);
-  const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  let word;
-  if (mode === 'set') word = `Ваш баланс изменён на ${newVal} балл(ов).`;
-  else if (mode === 'add') word = `Вам начислено ${amt} балл(ов). Теперь у вас ${newVal}.`;
-  else word = `У вас списано ${amt} балл(ов). Теперь у вас ${newVal}.`;
-  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: word });
-  toast('Готово: у ' + a.nick + ' теперь ' + newVal + ' баллов');
-  a.points = newVal;
-  lastListSignature = '';
-  renderMemberList();
-  await refreshPoints();
-  loadAudit();
-}
-
-async function kickMember(a) {
-  if (!confirm('Кикнуть «' + a.nick + '» с сайта?')) return;
-  const { error } = await supabase.from(a._tbl).update({ kick_flag: true }).eq('id', a.id);
-  if (error) { toast('Не получилось кикнуть: ' + error.message); return; }
-  toast('👋 ' + a.nick + ' будет кикнут сразу');
-  loadAudit();
-}
-
-async function banMember(a) {
-  const det = $('accList').querySelector('.detail');
-  if (!det) return;
-  const amt = parseInt(det.querySelector('#banAmount').value, 10);
-  const unit = det.querySelector('#banUnit').value;
-  const msg = det.querySelector('#detMsg');
-  msg.className = 'ok'; msg.textContent = '';
-  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
-  const ms = unit === 'hours' ? amt * 3600000 : amt * 60000;
-  const until = new Date(Date.now() + ms).toISOString();
-  const { error } = await supabase.from(a._tbl).update({ banned_until: until, kick_flag: true }).eq('id', a.id);
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + fmtLeft(ms) + '.';
-  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: 'Владелец запретил вам вход на ' + fmtLeft(ms) + '.' });
-  a.banned_until = until;
-  lastListSignature = '';
-  renderMemberList();
-  loadAudit();
-}
-
-async function unbanMember(a) {
-  const { error } = await supabase.from(a._tbl).update({ banned_until: null }).eq('id', a.id);
-  if (error) { toast('Не получилось снять бан: ' + error.message); return; }
-  a.banned_until = null;
-  toast('Бан снят');
-  lastListSignature = '';
-  lastGuestSignature = '';
-  renderMemberList();
-  renderGuestList();
-  loadAudit();
-}
-
-async function deleteMember(a) {
-  if (!confirm('Удалить участника «' + a.nick + '»? Он больше не сможет войти.')) return;
-  const { error } = await supabase.from(a._tbl).update({ deleted: true, kick_flag: true }).eq('id', a.id);
-  if (error) { toast('Не удалось удалить: ' + error.message); return; }
-  if (selectedId === a.id) selectedId = null;
-  toast('Участник удалён');
-  lastListSignature = '';
-  await loadMembers();
-  loadAudit();
-}
-
-$('btnMassAdd').onclick = () => changePointsAll('add');
-$('btnMassSub').onclick = () => changePointsAll('sub');
-
-async function changePointsAll(mode) {
-  const input = mode === 'add' ? $('massAddAmount') : $('massSubAmount');
-  const amt = parseInt(input.value, 10);
-  const msg = $('massMsg'); msg.className = 'ok'; msg.textContent = '';
-  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
-  const targets = members.concat(guests).filter(a => a.user_id && a.user_id !== me.id);
-  if (!targets.length) { msg.className = 'err'; msg.textContent = 'Нет аккаунтов кроме тебя'; return; }
-  let done = 0;
-  for (const a of targets) {
-    const newVal = mode === 'add' ? (a.points || 0) + amt : Math.max(0, (a.points || 0) - amt);
-    const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
-    if (!error) {
-      done++;
-      await supabase.from('notifications').insert({
-        recipient_id: a.user_id,
-        text: (mode === 'add' ? `Всем начислено ${amt} балл(ов).` : `У всех списано ${amt} балл(ов).`) + ` Теперь у вас ${newVal}.`
-      });
-      a.points = newVal;
+    if (act === 'zeroc') {
+      const { error } = await sb.rpc('admin_set', { p_tbl: tbl, p_id: id, p_points: null, p_clicks: 0 });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.clicks = 0;
+      await log(`Клики ${nick} обнулены`);
+      toast('🖱 Клики обнулены: ' + nick);
     }
-  }
-  msg.textContent = 'Готово: ' + (mode === 'add' ? 'начислено' : 'списано') + ' по ' + amt + ' у ' + done + ' аккаунт(ов)';
-  lastListSignature = '';
-  lastGuestSignature = '';
-  renderMemberList();
-  renderGuestList();
-  loadAudit();
-}
-
-$('btnCreate').onclick = async () => {
-  const nick = $('newNick').value.trim().toLowerCase();
-  const pass = $('newPass').value;
-  const msg = $('createMsg'); msg.className = 'ok'; msg.textContent = '';
-  if (!nick || !pass) { msg.className = 'err'; msg.textContent = 'Заполни ник и пароль'; return; }
-  if (pass.length < 6) { msg.className = 'err'; msg.textContent = 'Пароль минимум 6 символов'; return; }
-  if (members.some(a => a.nick === nick) || guests.some(a => a.nick === nick)) { msg.className = 'err'; msg.textContent = 'Такой ник уже есть'; return; }
-  if (!savedCreds) { try { savedCreds = JSON.parse(sessionStorage.getItem('admin_creds')); } catch (e) {} }
-  const { data, error } = await supabase.auth.signUp({ email: nick + '@mysait.local', password: pass });
-  if (error) {
-    msg.className = 'err';
-    msg.textContent = /already registered/i.test(error.message) ? 'Ник занят: выбери другой ник' : error.message;
-    return;
-  }
-  if (savedCreds) { await supabase.auth.signOut(); await supabase.auth.signInWithPassword(savedCreds); }
-  const { error: insErr } = await supabase.from(TBL_MEMBERS).insert({ user_id: data.user.id, nick, points: 0, last_seen: null });
-  if (insErr) { msg.className = 'err'; msg.textContent = 'Пользователь создан, но строка не записалась: ' + insErr.message; return; }
-  msg.textContent = 'Аккаунт ' + nick + ' создан';
-  $('newNick').value = ''; $('newPass').value = '';
-  lastListSignature = '';
-  await loadMembers();
-};
-
-function fillSendSelect() {
-  const st = $('sendTo'), cur = st.value;
-  st.innerHTML = '<option value="all">Всем</option>' +
-    members.concat(guests).filter(a => a.user_id && a.user_id !== me.id)
-      .map(a => `<option value="${a.user_id}">${esc(a.nick)}</option>`).join('');
-  if (cur) st.value = cur;
-}
-
-$('btnSend').onclick = async () => {
-  const to = $('sendTo').value;
-  const text = $('sendText').value.trim();
-  const msg = $('sendMsg'); msg.className = 'ok'; msg.textContent = '';
-  if (!text) { msg.className = 'err'; msg.textContent = 'Введи текст'; return; }
-  const { error } = await supabase.from('notifications').insert({ recipient_id: to === 'all' ? null : to, text });
-  if (error) { msg.className = 'err'; msg.textContent = 'Ошибка: ' + error.message; return; }
-  msg.textContent = 'Отправлено!';
-  $('sendText').value = '';
-};
-
-// ===== АДМИНКА: ГОСТЫ =====
-$('btnGuests').onclick = () => {
-  guestsOpen = !guestsOpen;
-  $('guestsBlock').classList.toggle('hidden', !guestsOpen);
-  $('btnGuests').textContent = guestsOpen ? '👤 Гости ▲' : '👤 Гости';
-  if (guestsOpen) { lastGuestSignature = ''; loadGuestsData(true); }
-};
-$('btnGuestsReload').onclick = () => { lastGuestSignature = ''; loadGuestsData(true); };
-
-async function loadGuestsData(silent) {
-  if (!isAdmin) return;
-  const { data: reqs } = await supabase.from('guest_requests').select('*').eq('status', 'pending').order('created_at');
-  renderGuestReqs(reqs || []);
-  await loadGuestsList();
-}
-
-function guestListSignature() {
-  return guests.map(a => [
-    a.id, a.nick, a.points, isOnline(a) ? 1 : 0, isBanned(a) ? a.banned_until : '', a.id === selectedGuestId ? 1 : 0
-  ].join('~')).join(';');
-}
-
-function renderGuestReqs(reqs) {
-  const ql = $('guestReqsList');
-  if (!ql) return;
-  ql.innerHTML = reqs.length ? '' : '<div class="small">Запросов на баллы пока нет</div>';
-  reqs.forEach(r => {
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span>${esc(r.nick || '?')} просит ${r.amount} балл(ов) (≈${(r.amount/10).toFixed(0)} руб.) · <span class="small">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></span>`;
-    const row = document.createElement('div'); row.className = 'row';
-    const okb = document.createElement('button'); okb.className = 'okbtn'; okb.textContent = '✅ Начислить';
-    okb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    okb.onclick = async () => {
-      const { data: acc } = await supabase.from(TBL_GUESTS).select('*').eq('user_id', r.user_id).maybeSingle();
-      if (!acc) { toast('Аккаунт гостя не найден'); return; }
-      const newVal = (acc.points || 0) + r.amount;
-      const { error: e1 } = await supabase.from(TBL_GUESTS).update({ points: newVal }).eq('id', acc.id);
-      if (e1) { toast('Не получилось: ' + e1.message); return; }
-      await supabase.from('guest_requests').update({ status: 'done' }).eq('id', r.id);
-      await supabase.from('notifications').insert({ recipient_id: r.user_id, text: `Вам начислено ${r.amount} балл(ов). Теперь у вас ${newVal}.` });
-      toast('✅ Баллы начислены');
-      lastGuestSignature = '';
-      await loadMembers();
-      await loadGuestsData(true);
-    };
-    const rb = document.createElement('button'); rb.className = 'danger'; rb.textContent = '✕ Отклонить';
-    rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    rb.onclick = async () => {
-      await supabase.from('guest_requests').update({ status: 'rejected' }).eq('id', r.id);
-      toast('Запрос отклонён');
-      loadGuestsData(true);
-    };
-    row.appendChild(okb); row.appendChild(rb); d.appendChild(row); ql.appendChild(d);
-  });
-}
-
-function renderGuestList() {
-  const list = $('guestList');
-  if (!list || !isAdmin) return;
-  const sig = guestListSignature();
-  if (sig === lastGuestSignature) return;
-  lastGuestSignature = sig;
-  const oldDet = list.querySelector('.detail');
-  let savedGAmount = '10', savedGBanAmount = '60';
-  if (oldDet) {
-    const ga = oldDet.querySelector('#gDetAmount'); if (ga && ga.value !== '') savedGAmount = ga.value;
-    const ba = oldDet.querySelector('#gBanAmount'); if (ba && ba.value !== '') savedGBanAmount = ba.value;
-  }
-  list.innerHTML = '';
-  for (const a of guests) {
-    const banned = isBanned(a);
-    const d = document.createElement('div');
-    d.className = 'item clickable' + (a.id === selectedGuestId ? ' selected' : '');
-    d.innerHTML = `
-      <span class="usercell">
-        <span class="avatar">${esc((a.nick || '?').charAt(0).toUpperCase())}</span>
-        <span>
-          <b>${esc(a.nick)}</b> <span class="small">(гость)</span>
-          &nbsp;<span class="small">⭐ ${a.points || 0}</span>
-          <br><span class="pill ${banned ? 'ban' : (isOnline(a) ? 'on' : 'off')}" style="margin-left:0">
-            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
-          </span>
-        </span>
-      </span>
-      <span class="small">${a.id === selectedGuestId ? '▲ свернуть' : '▼ открыть'}</span>`;
-    d.onclick = () => { selectedGuestId = (selectedGuestId === a.id) ? null : a.id; lastGuestSignature = ''; renderGuestList(); };
-    list.appendChild(d);
-
-    if (a.id === selectedGuestId) {
-      const online = isOnline(a);
-      const det = document.createElement('div');
-      det.className = 'detail';
-      det.innerHTML = `
-        <div class="row" style="margin-bottom:4px"><span><b>Ник:</b> ${esc(a.nick)}</span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Статус:</b>
-          <span class="pill ${banned ? 'ban' : (online ? 'on' : 'off')}">
-            ${banned ? '🚫 бан ещё ' + fmtLeft(new Date(a.banned_until).getTime() - Date.now()) : esc(lastSeenText(a))}
-          </span></span></div>
-        <div class="row" style="margin-bottom:4px"><span><b>Баллы:</b> <span class="points" style="font-size:18px">${a.points || 0}</span></span></div>
-        <div class="small" style="margin:10px 0 2px"><b>Изменить баллы:</b></div>
-        <div class="row"><input type="number" min="0" value="${esc(savedGAmount)}" id="gDetAmount" style="max-width:110px"></div>
-        <div class="row">
-          <button id="gDetAdd">＋ Начислить</button>
-          <button id="gDetSub" class="danger">－ Списать</button>
-          <button id="gDetSet" class="gray">＝ Установить</button>
-        </div>
-        <div class="small" style="margin:10px 0 2px"><b>Блокировка и удаление:</b></div>
-        <div class="row">
-          <input type="number" min="1" value="${esc(savedGBanAmount)}" id="gBanAmount" style="max-width:90px">
-          <span class="small">минут</span>
-          <button id="gDetBan" class="danger">🚫 Запретить вход</button>
-          <button id="gDetUnban" class="gray">Снять бан</button>
-        </div>
-        <div class="row"><button id="gDetDel" class="danger">🗑 Удалить гостя</button></div>
-        <div id="gDetMsg" class="ok"></div>`;
-      list.appendChild(det);
-      det.querySelector('#gDetAdd').onclick = () => changeGuestPoints(a, 'add');
-      det.querySelector('#gDetSub').onclick = () => changeGuestPoints(a, 'sub');
-      det.querySelector('#gDetSet').onclick = () => changeGuestPoints(a, 'set');
-      det.querySelector('#gDetBan').onclick = () => banGuest(a);
-      det.querySelector('#gDetUnban').onclick = () => unbanMember(a);
-      det.querySelector('#gDetDel').onclick = () => deleteGuest(a);
+    if (act === 'resetm') {
+      const { error } = await sb.rpc('admin_reset_mult', { p_tbl: tbl, p_id: id });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.mult = 1; row.mult_until = null;
+      await log(`Множитель ${nick} сброшен`);
+      toast(`⚡ Множитель сброшен: ${nick}`);
     }
+    if (act === 'ban') {
+      const mins = parseInt(itemEl.querySelector(`[data-banmin="${id}"]`).value, 10) || 60;
+      const reason = prompt('Причина бана (можно оставить пустым):') ?? '';
+      const { error } = await sb.rpc('admin_ban', { p_tbl: tbl, p_id: id, p_minutes: mins, p_reason: reason });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.banned_until = new Date(Date.now() + mins*60000).toISOString();
+      row.ban_reason = reason;
+      await log(`Бан ${nick} на ${mins} мин${reason ? ': ' + reason : ''}`);
+      toast(`⛔ ${nick} забанен на ${mins} мин`);
+    }
+    if (act === 'banforever') {
+      if (!confirm(`Забанить ${nick} НАВСЕГДА?`)) return;
+      const reason = prompt('Причина (можно оставить пустым):') ?? '';
+      const { error } = await sb.rpc('admin_ban', { p_tbl: tbl, p_id: id, p_minutes: 5256000, p_reason: reason });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.banned_until = new Date(Date.now() + 5256000*60000).toISOString();
+      row.ban_reason = reason;
+      await log(`Бан навсегда: ${nick}${reason ? ': ' + reason : ''}`);
+      toast(`∞ ${nick} забанен навсегда`);
+    }
+    if (act === 'kick') {
+      const { error } = await sb.rpc('admin_ban', { p_tbl: tbl, p_id: id, p_minutes: 5, p_reason: 'Кик' });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.banned_until = new Date(Date.now() + 5*60000).toISOString();
+      row.ban_reason = 'Кик';
+      await log(`Кик ${nick} (5 мин)`);
+      toast(`🥾 ${nick} кикнут на 5 мин`);
+    }
+    if (act === 'unban') {
+      const { error } = await sb.rpc('admin_unban', { p_tbl: tbl, p_id: id });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      row.banned_until = null; row.ban_reason = null;
+      await log(`Разбан ${nick}`);
+      toast(`${nick} разбанен`);
+    }
+    if (act === 'del') {
+      if (!confirm(`УДАЛИТЬ аккаунт ${nick} полностью? Баллы, клики, покупки и вход будут стёрты. Отменить нельзя.`)) return;
+      const { error } = await sb.rpc('admin_delete_user', { p_tbl: tbl, p_id: id });
+      if (error) { toast('Не вышло: ' + error.message); return; }
+      await log(`Аккаунт ${nick} удалён`);
+      toast(`🗑 Аккаунт ${nick} удалён`);
+    }
+    if (me && row.user_id === me.id) await reloadProfile();
+    loadAdmin();
   }
-  if (!guests.length) list.innerHTML = '<div class="small">Гостей пока нет</div>';
-}
 
-async function changeGuestPoints(a, mode) {
-  const det = $('guestList').querySelector('.detail');
-  if (!det) return;
-  const amt = parseInt(det.querySelector('#gDetAmount').value, 10);
-  const msg = det.querySelector('#gDetMsg');
-  msg.className = 'ok'; msg.textContent = '';
-  if (isNaN(amt) || amt < 0) { msg.className = 'err'; msg.textContent = 'Укажи число 0 или больше'; return; }
-  let newVal;
-  if (mode === 'set') newVal = amt;
-  else if (mode === 'add') newVal = (a.points || 0) + amt;
-  else newVal = Math.max(0, (a.points || 0) - amt);
-  const { error } = await supabase.from(a._tbl).update({ points: newVal }).eq('id', a.id);
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  let word;
-  if (mode === 'set') word = `Ваш баланс изменён на ${newVal} балл(ов).`;
-  else if (mode === 'add') word = `Вам начислено ${amt} балл(ов). Теперь у вас ${newVal}.`;
-  else word = `У вас списано ${amt} балл(ов). Теперь у вас ${newVal}.`;
-  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: word });
-  toast('Готово: у гостя ' + a.nick + ' теперь ' + newVal + ' баллов');
-  a.points = newVal;
-  lastGuestSignature = '';
-  renderGuestList();
-  loadAudit();
-}
-
-async function banGuest(a) {
-  const det = $('guestList').querySelector('.detail');
-  if (!det) return;
-  const amt = parseInt(det.querySelector('#gBanAmount').value, 10);
-  const msg = det.querySelector('#gDetMsg');
-  msg.className = 'ok'; msg.textContent = '';
-  if (isNaN(amt) || amt <= 0) { msg.className = 'err'; msg.textContent = 'Укажи число больше 0'; return; }
-  const until = new Date(Date.now() + amt * 60000).toISOString();
-  const { error } = await supabase.from(a._tbl).update({ banned_until: until, kick_flag: true }).eq('id', a.id);
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Вход для ' + a.nick + ' запрещён на ' + amt + ' мин.';
-  await supabase.from('notifications').insert({ recipient_id: a.user_id, text: '🚫 Владелец заблокировал вход на ' + amt + ' мин.' });
-  a.banned_until = until;
-  lastGuestSignature = '';
-  renderGuestList();
-  loadAudit();
-}
-
-async function deleteGuest(a) {
-  if (!confirm('Удалить гостя «' + a.nick + '»? Он больше не сможет войти.')) return;
-  const { error } = await supabase.from(a._tbl).update({ deleted: true, kick_flag: true }).eq('id', a.id);
-  if (error) { toast('Не получилось: ' + error.message); return; }
-  if (selectedGuestId === a.id) selectedGuestId = null;
-  toast('Гость удалён');
-  lastGuestSignature = '';
-  await loadGuestsData(true);
-  loadAudit();
-}
-
-// ===== АДМИНКА: ВЫВОДЫ =====
-$('btnWithdrawals').onclick = () => {
-  wdOpen = !wdOpen;
-  $('wdBlock').classList.toggle('hidden', !wdOpen);
-  $('btnWithdrawals').textContent = wdOpen ? '💰 Заявки на вывод ▲' : '💰 Заявки на вывод';
-  if (wdOpen) loadWithdrawals(true);
-};
-$('btnWdReload').onclick = () => loadWithdrawals(true);
-
-async function loadWithdrawals(silent) {
-  if (!isAdmin) return;
-  const { data, error } = await supabase.from('withdrawals').select('*').eq('status', 'pending').order('created_at');
-  if (error) return;
-  wdCache = data || [];
-  renderWdList();
-  lastListSignature = '';
-  renderMemberList();
-}
-
-function renderWdList() {
-  const l = $('wdList');
-  if (!l) return;
-  if (!wdCache.length) { l.innerHTML = '<div class="small">Заявок на вывод нет</div>'; return; }
-  l.innerHTML = '';
-  for (const w of wdCache) {
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span>${esc(w.nick || '?')}: ${w.amount} балл(ов)</span>`;
-    const bb = document.createElement('button');
-    bb.className = 'okbtn'; bb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    bb.textContent = '✅ Вывод успешный'; bb.onclick = () => confirmWithdrawal(w);
-    const rb = document.createElement('button');
-    rb.className = 'danger'; rb.style.cssText = 'margin-top:0;padding:6px 12px;font-size:13px';
-    rb.textContent = '✕ Отклонить'; rb.onclick = () => rejectWithdrawal(w);
-    d.appendChild(bb); d.appendChild(rb);
-    l.appendChild(d);
+  async function decideWd(b){
+    const ok = b.dataset.wd === 'ok';
+    const { error } = await sb.rpc('admin_wd', { p_id: b.dataset.id, p_approve: ok });
+    if (error) { toast('Не вышло: ' + error.message); return; }
+    await log(ok ? 'Вывод одобрен' : 'Заявка отклонена');
+    toast(ok ? '✔ Вывод одобрен' : 'Заявка отклонена');
+    await reloadProfile();
+    loadAdmin();
   }
-}
-
-async function confirmWithdrawal(w) {
-  const r = await rowForUserId(w.user_id);
-  const acc = r.row;
-  if (!acc) { toast('Аккаунт не найден'); return; }
-  if ((acc.points || 0) < w.amount) { toast('У аккаунта недостаточно баллов'); return; }
-  const newVal = (acc.points || 0) - w.amount;
-  const { error } = await supabase.from(r.table).update({ points: newVal }).eq('id', acc.id);
-  if (error) { toast('Не получилось: ' + error.message); return; }
-  await supabase.from('withdrawals').update({ status: 'done' }).eq('id', w.id);
-  await supabase.from('notifications').insert({ recipient_id: w.user_id, text: `Вывод ${w.amount} балл(ов) подтверждён. Осталось ${newVal}.` });
-  toast('✅ Вывод подтверждён — баллы списаны');
-  await loadMembers();
-  await loadGuestsList();
-  await loadWithdrawals(true);
-  await refreshPoints();
-  loadAudit();
-}
-
-async function rejectWithdrawal(w) {
-  await supabase.from('withdrawals').update({ status: 'rejected' }).eq('id', w.id);
-  await supabase.from('notifications').insert({ recipient_id: w.user_id, text: 'Ваш запрос на вывод отклонён. Баллы остались у вас.' });
-  toast('Вывод отклонён — баллы остались у аккаунта');
-  lastListSignature = '';
-  renderMemberList();
-  renderWdList();
-}
-
-// ===== АДМИНКА: ЖУРНАЛ =====
-async function loadAudit() {
-  if (!isAdmin) return;
-  const { data, error } = await supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(20);
-  const l = $('auditList');
-  if (!l) return;
-  if (error) { l.innerHTML = '<div class="small">Журнал недоступен</div>'; return; }
-  l.innerHTML = (data || []).map(r =>
-    `<div class="item"><span>${esc(r.actor || 'система')}: ${esc(r.action || '')} — ${esc(r.details || '')}</span><span class="small" style="white-space:nowrap">${new Date(r.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span></div>`
-  ).join('') || '<div class="small">Пока пусто</div>';
-}
-
-// ===== АДМИНКА: ТОВАРЫ =====
-$('btnAddProductOpen').onclick = () => {
-  addProductOpen = !addProductOpen;
-  $('addProductBlock').classList.toggle('hidden', !addProductOpen);
-  $('btnAddProductOpen').textContent = addProductOpen ? '📦 Добавить товар ▲' : '📦 Добавить товар';
-};
-
-const dz = $('dropZone');
-dz.onclick = () => $('photoInput').click();
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files[0]) handlePhoto(e.dataTransfer.files[0]); });
-$('photoInput').onchange = e => { if (e.target.files[0]) handlePhoto(e.target.files[0]); };
-document.addEventListener('paste', e => {
-  if ($('addProductBlock').classList.contains('hidden')) return;
-  const it = e.clipboardData && e.clipboardData.items;
-  if (!it) return;
-  for (const item of it) { if (item.type.startsWith('image/')) { handlePhoto(item.getAsFile()); break; } }
-});
-
-function handlePhoto(file) {
-  if (!file || !file.type.startsWith('image/')) return;
-  const img = new Image();
-  img.onload = () => {
-    const max = 800;
-    const scale = Math.min(1, max / Math.max(img.width, img.height));
-    const cv = document.createElement('canvas');
-    cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-    pendingPhoto = cv.toDataURL('image/jpeg', 0.7);
-    $('photoPreview').innerHTML = '<img class="prodimg" src="' + pendingPhoto + '">';
+  $('#btnReloadAdmin').onclick = loadAdmin;
+  $('#btnZeroAll').onclick = async () => {
+    if (!confirm('Обнулить клики у всех участников и гостей?')) return;
+    await sb.from('members').update({ clicks: 0 }).not('id','is',null);
+    await sb.from('guest_accounts').update({ clicks: 0 }).not('id','is',null);
+    await log('Клики обнулены у всех');
+    toast('🖱 Клики обнулены у всех');
+    loadAdmin();
   };
-  img.src = URL.createObjectURL(file);
-}
 
-$('btnAddProduct').onclick = async () => {
-  const msg = $('addProdMsg'); msg.className = 'ok'; msg.textContent = '';
-  const t = $('pTitle').value.trim(), dsc = $('pDesc').value.trim();
-  const price = parseInt($('pPrice').value, 10);
-  const gPrice = parseInt($('pGuestPrice').value, 10) || price;
-  const qty = parseInt($('pQty').value, 10);
-  const priceRub = parseFloat($('pPriceRub').value) || 0;
-  if (!t || isNaN(price) || price < 1 || isNaN(qty) || qty < 1) { msg.className = 'err'; msg.textContent = 'Заполни название, цену в баллах DEDSECK и количество'; return; }
-  const { error } = await supabase.from('products').insert({
-    title: t, description: dsc, price, price_rub: priceRub, guest_price: gPrice, quantity: qty, photo: pendingPhoto
-  });
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Товар выставлен';
-  $('pTitle').value = ''; $('pDesc').value = ''; $('pPrice').value = '';
-  $('pGuestPrice').value = ''; $('pPriceRub').value = ''; $('pQty').value = '1';
-  pendingPhoto = null; $('photoPreview').innerHTML = '';
-  loadShop();
-};
+  // Добавление товара
+  $('#btnAddGood').onclick = async () => {
+    msg('#giMsg','','');
+    const name = $('#giName').value.trim();
+    if (!name) { msg('#giMsg','Введите название','err'); return; }
+    const { error } = await sb.from('shop_items').insert({
+      name,
+      descr: $('#giDescr').value.trim(),
+      photo: $('#giPhoto').value.trim(),
+      price_rub: Number($('#giRub').value) || 0,
+      price_guest: parseInt($('#giGuest').value,10) || 0,
+      price_dedseck: parseInt($('#giDs').value,10) || 0,
+      kind: 'item',
+    });
+    if (error) { msg('#giMsg','Не добавилось: ' + error.message,'err'); return; }
+    msg('#giMsg','Товар добавлен','ok');
+    $('#giName').value = ''; $('#giDescr').value = ''; $('#giPhoto').value = '';
+    $('#giRub').value = ''; $('#giGuest').value = ''; $('#giDs').value = '';
+    await log('Добавлен товар: ' + name);
+    toast('📦 Товар добавлен');
+    loadAdmin();
+  };
 
-// ===== АДМИНКА: ХОТЯТ КУПИТЬ =====
-$('btnBuyReqs').onclick = () => {
-  buyReqsOpen = !buyReqsOpen;
-  $('buyReqsBlock').classList.toggle('hidden', !buyReqsOpen);
-  $('btnBuyReqs').textContent = buyReqsOpen ? '🛒 Хотят купить ▲' : '🛒 Хотят купить';
-  if (buyReqsOpen) loadPendingPurchases(true);
-};
-$('btnBuyReqsReload').onclick = () => loadPendingPurchases(true);
-
-async function loadPendingPurchases(silent) {
-  if (!isAdmin) return;
-  const { data, error } = await supabase.from('purchases').select('*').eq('status', 'pending').order('created_at');
-  if (error) return;
-  if (!Object.keys(prodMap).length) {
-    const { data: pr } = await supabase.from('products').select('id,title');
-    (pr || []).forEach(p => prodMap[p.id] = p.title);
-  }
-  const l = $('buyReqList');
-  if (!(data || []).length) { l.innerHTML = '<div class="small">Заявок пока нет</div>'; return; }
-  l.innerHTML = (data || []).map(x =>
-    `<div class="item">
-      <span>🛒 <b>${esc(x.buyer_name || '?')}</b>${x.phone ? ' · 📞 ' + esc(x.phone) : ''}
-      → «${esc(prodMap[x.product_id] || 'товар')}» · ${methodLabel(x.method)}</span>
-      <span class="row" style="justify-content:flex-end">
-        <button class="okbtn buy-ok" data-id="${x.id}" style="margin-top:0;padding:6px 12px;font-size:13px">✅ Торг завершён</button>
-        <button class="danger buy-no" data-id="${x.id}" style="margin-top:0;padding:6px 12px;font-size:13px">✕ Отклонить торг</button>
-      </span></div>`
-  ).join('');
-  l.querySelectorAll('.buy-ok').forEach(b => {
-    b.onclick = async () => {
-      const x = data.find(v => v.id === b.dataset.id);
-      if (x.method !== 'kingroom' && x.user_id) {
-        const r = await rowForUserId(x.user_id);
-        const acc = r.row;
-        if (acc) {
-          if ((acc.points || 0) < x.price) { toast('У аккаунта недостаточно баллов'); return; }
-          await supabase.from(r.table).update({ points: (acc.points || 0) - x.price }).eq('id', acc.id);
-          await supabase.from('notifications').insert({ recipient_id: x.user_id, text: `Покупка «${prodMap[x.product_id] || 'товар'}» подтверждена. Списано ${x.price} балл(ов).` });
-        }
-      }
-      await supabase.from('purchases').update({ status: 'done' }).eq('id', x.id);
-      const prod = shopCache.find(p2 => p2.id === x.product_id);
-      if (prod) await supabase.from('products').update({ quantity: Math.max(0, (prod.quantity ?? 1) - 1) }).eq('id', x.product_id);
-      toast('✅ Покупка подтверждена');
-      await loadPendingPurchases(true);
-      await loadShop();
-      await refreshPoints();
-      loadAudit();
+  // ===== ДИАЛОГ ВЫХОДА В APK =====
+  if (location.search.includes('app=1')) {
+    history.pushState({ exitGuard:true }, '', location.href);
+    window.onpopstate = () => {
+      if (confirm('Точно закрыть приложение?')) history.go(-(history.length - 1));
+      else history.pushState({ exitGuard:true }, '', location.href);
     };
-  });
-  l.querySelectorAll('.buy-no').forEach(b => {
-    b.onclick = async () => {
-      await supabase.from('purchases').update({ status: 'rejected' }).eq('id', b.dataset.id);
-      toast('Покупка отклонена');
-      loadPendingPurchases(true);
-    };
-  });
-}
-
-// ===== АДМИНКА: ПАРОЛЬ, СЕРВЕР, ТАЙМЕР, СЛЕЖКА =====
-$('btnAdminPass').onclick = async () => {
-  const p = $('newAdminPass').value;
-  const msg = $('adminPassMsg');
-  msg.className = 'ok'; msg.textContent = '';
-  if (p.length < 6) { msg.className = 'err'; msg.textContent = 'Минимум 6 символов'; return; }
-  const { error } = await supabase.auth.updateUser({ password: p });
-  if (error) { msg.className = 'err'; msg.textContent = 'Не получилось: ' + error.message; return; }
-  msg.textContent = 'Пароль изменён! Теперь вход — с этим паролем.';
-  $('newAdminPass').value = '';
-};
-
-function updateServerButton() {
-  $('btnServer').textContent = serverOff ? '✅ Включить сервер (пин-код)' : '⏻ Выключить сервер (пин-код)';
-}
-function updateTimerButton() {
-  $('btnTimer').textContent = timerArmed ? '⏱ Выключить таймер доп-кода' : '⏱ Включить таймер доп-кода (15 с)';
-}
-function updateDevWatchButton() {
-  $('btnDevWatch').textContent = devWatchOn
-    ? '🕵 Режим слежки за кодом: ВКЛ (нажми, чтобы выключить)'
-    : '🕵 Режим слежки за кодом: ВЫКЛ (нажми, чтобы включить)';
-}
-
-$('btnServer').onclick = async () => {
-  const pin = prompt(serverOff ? 'Введите пин-код, чтобы ВКЛЮЧИТЬ сервер:' : 'Введите пин-код, чтобы ВЫКЛЮЧИТЬ сервер:');
-  if (pin === null) return;
-  const msg = $('serverMsg'); msg.className = 'ok'; msg.textContent = '';
-  let ok = false, err = '';
-  try {
-    if (serverOff) { const { data, error } = await supabase.rpc('site_unlock', { p_code: pin }); ok = !!data; if (error) err = error.message; }
-    else { const { data, error } = await supabase.rpc('site_lock', { p_pin: pin }); ok = !!data; if (error) err = error.message; }
-  } catch (e) { err = e.message; }
-  if (err) { msg.className = 'err'; msg.textContent = 'Ошибка: ' + err; return; }
-  if (!ok) { msg.className = 'err'; msg.textContent = 'Неверный пин-код'; return; }
-  serverOff = !serverOff;
-  msg.textContent = serverOff ? 'Сервер выключен — у всех экран блокировки' : 'Сервер включён';
-  updateServerButton();
-  if (serverOff) setTimeout(() => { stopped = true; clearInterval(pollTimer); $('app').classList.add('hidden'); $('authScreen').classList.remove('hidden'); renderAuthScreen(); }, 600);
-};
-
-$('btnTimer').onclick = async () => {
-  const pin = prompt('Введите пин-код, чтобы ' + (timerArmed ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ') + ' таймер доп-кода:');
-  if (pin === null) return;
-  const msg = $('timerMsg'); msg.className = 'ok'; msg.textContent = '';
-  let ok = false, err = '';
-  try { const { data, error } = await supabase.rpc('pin_timer_arm', { p_pin: pin, p_on: !timerArmed }); ok = !!data; if (error) err = error.message; }
-  catch (e) { err = e.message; }
-  if (err) { msg.className = 'err'; msg.textContent = 'Ошибка: ' + err; return; }
-  if (!ok) { msg.className = 'err'; msg.textContent = 'Неверный пин-код'; return; }
-  timerArmed = !timerArmed;
-  msg.textContent = timerArmed ? 'Таймер включён' : 'Таймер выключен';
-  updateTimerButton();
-};
-
-$('btnDevWatch').onclick = async () => {
-  const pin = prompt('Введите пин-код, чтобы ' + (devWatchOn ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ') + ' режим слежки за кодом:');
-  if (pin === null) return;
-  const msg = $('devMsg'); msg.className = 'ok'; msg.textContent = '';
-  let ok = false, err = '';
-  try { const { data, error } = await supabase.rpc('devtools_watch_arm', { p_pin: pin, p_on: !devWatchOn }); ok = !!data; if (error) err = error.message; }
-  catch (e) { err = e.message; }
-  if (err) { msg.className = 'err'; msg.textContent = 'Ошибка: ' + err; return; }
-  if (!ok) { msg.className = 'err'; msg.textContent = 'Неверный пин-код'; return; }
-  devWatchOn = !devWatchOn;
-  msg.textContent = devWatchOn ? 'Слежка включена' : 'Слежка выключена';
-  updateDevWatchButton();
-};
-
-async function devWatchCheck() {
-  if (!devWatchOn || devReported || stopped) return;
-  const dw = (window.outerWidth || 0) - (window.innerWidth || 0);
-  const dh = (window.outerHeight || 0) - (window.innerHeight || 0);
-  if (dw > 200 || dh > 200) { devReported = true; await reportFail('devtools'); }
-}
-
-// ===== УВЕДОМЛЕНИЯ =====
-function loadSeen() { try { seen = new Set(JSON.parse(localStorage.getItem('seen_' + (me ? me.email : '')) || '[]')); } catch (e) { seen = new Set(); } }
-function saveSeen() { localStorage.setItem('seen_' + (me ? me.email : ''), JSON.stringify([...seen])); }
-
-async function initNotifications() {
-  loadSeen();
-  const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(100);
-  if (error) { toast('Ошибка уведомлений: ' + error.message); return; }
-  notifCache = (data || []).filter(n => !n.recipient_id || n.recipient_id === me.id);
-  notifCache.forEach(n => seen.add(n.id));
-  saveSeen();
-  unreadCount = 0;
-  renderNotifs();
-  pollLast = new Date().toISOString();
-}
-
-function renderNotifs() {
-  const l = $('notifList');
-  l.innerHTML = notifCache.length ? '' : '<div class="small">Пока пусто</div>';
-  notifCache.forEach(n => {
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span>${esc(n.text)}</span><span class="small" style="white-space:nowrap">${new Date(n.created_at).toLocaleString('ru', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>`;
-    l.appendChild(d);
-  });
-  $('notifBadge').innerHTML = unreadCount ? ` <span class="badge">${unreadCount}</span>` : '';
-  $('btnNotifView').textContent = unreadCount ? '🔔 (' + unreadCount + ')' : '🔔 Уведомления';
-}
-
-$('btnNotifView').onclick = () => { $('notifModal').classList.remove('hidden'); renderNotifs(); };
-$('btnNotifClose').onclick = () => $('notifModal').classList.add('hidden');
-$('notifModal').addEventListener('click', e => { if (e.target === $('notifModal')) $('notifModal').classList.add('hidden'); });
-
-$('btnReadMark').onclick = () => {
-  notifCache.forEach(n => seen.add(n.id));
-  saveSeen();
-  unreadCount = 0;
-  $('notifBadge').innerHTML = '';
-  $('btnNotifView').textContent = '🔔 Уведомления';
-  toast('Все уведомления отмечены прочитанными');
-};
-
-$('btnNotifOn').onclick = async () => {
-  if (!('Notification' in window)) { toast('Браузер не поддерживает уведомления'); return; }
-  const p = await Notification.requestPermission();
-  if (p === 'granted') {
-    $('btnNotifOn').textContent = '🔊 Уведомления вкл.';
-    new Notification('DEDSECK', { body: 'Уведомления включены!' });
-  }
-};
-
-// ===== ОПРОС =====
-async function poll() {
-  if (!me || stopped) return;
-  const alarmNow = await isAlarm();
-  if (alarmNow !== alarmOn) alarmOn = alarmNow;
-  if (alarmOn) { await forceAlarmScreen(); return; }
-  const offNow = await timerCheck();
-  if (offNow !== serverOff) { serverOff = offNow; if (isAdmin) updateServerButton(); }
-  if (serverOff) {
-    stopped = true;
-    clearInterval(pollTimer);
-    await supabase.auth.signOut();
-    $('app').classList.add('hidden');
-    $('authScreen').classList.remove('hidden');
-    renderAuthScreen();
-    return;
-  }
-  const r = await rowForUserId(me.id);
-  const myRows = r.row;
-  if (myRows) {
-    if (myRows.deleted) { kickSelf(false, '🚫 Владелец удалил этот аккаунт'); return; }
-    if (myRows.banned_until && new Date(myRows.banned_until).getTime() > Date.now()) { kickSelf(false, '🚫 Владелец запретил вам вход. Осталось: ' + fmtLeft(new Date(myRows.banned_until).getTime() - Date.now())); return; }
-    if (myRows.kick_flag) { kickSelf(false, '👋 Владелец кикнул вас с сайта'); return; }
-  }
-  updateLastSeen();
-
-  if (isAdmin) {
-    if (membersOpen) {
-      const { data: freshMembers } = await supabase.from(TBL_MEMBERS).select('*');
-      if (freshMembers) {
-        members = freshMembers.filter(a => !a.deleted).map(a => ({ ...a, _tbl: TBL_MEMBERS }));
-        if (selectedId && !members.some(a => a.id === selectedId)) selectedId = null;
-        renderMemberList();
-        fillSendSelect();
-      }
-      await loadWithdrawals(true);
-      loadAudit();
-    }
-    if (guestsOpen) await loadGuestsData(true);
-    if (buyReqsOpen) await loadPendingPurchases(true);
   }
 
-  const { data } = await supabase.from('notifications').select('*').gt('created_at', pollLast).order('created_at');
-  pollLast = new Date().toISOString();
-  const fresh = (data || []).filter(n => (!n.recipient_id || n.recipient_id === me.id) && !notifCache.some(x => x.id === n.id));
-  if (fresh.length) {
-    notifCache = [...fresh, ...notifCache].slice(0, 100);
-    unreadCount += fresh.length;
-    renderNotifs();
-    fresh.forEach(n => toast('🔔 ' + n.text));
-    beep();
-  }
-}
-
-// ===== СТАРТ =====
-(async () => {
-  if (!window.supabase) {
-    document.body.insertAdjacentHTML('beforeend',
-      '<div style="padding:20px;color:#fb7185;text-align:center">Не загрузилась библиотека Supabase — проверьте интернет и обновите страницу.</div>');
-    return;
-  }
-  serverOff = await timerCheck();
-  alarmOn = await isAlarm();
-  renderAuthScreen();
-  startAlarmWatch();
-  setInterval(devWatchCheck, 1500);
-})();
-
+  // ===== СТАРТ =====
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) await afterAuth(session.user);
+  })();
 })();
 </script>
 </body>
